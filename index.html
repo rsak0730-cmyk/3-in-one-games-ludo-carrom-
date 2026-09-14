@@ -3,44 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SyncBeat - Gaming Hub</title>
+    <title>SyncBeat - Unified Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         html, body { position: fixed; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         
-        /* Auth Modal */
         #authModal { position: fixed; inset: 0; background: rgba(10, 2, 15, 0.98); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-card { background: #1e0524; width: 100%; max-width: 340px; border-radius: 24px; padding: 30px 24px; text-align: center; border: 2px solid rgba(250, 204, 21, 0.5); box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
-        .auth-input { width: 100%; background: #000; border: 1px solid #4a0e4e; border-radius: 12px; padding: 16px; color: #fff; margin: 25px 0; font-size: 16px; text-align: center; outline: none; font-weight: 700; transition: border-color 0.3s; }
+        .auth-input { width: 100%; background: #000; border: 1px solid #4a0e4e; border-radius: 12px; padding: 16px; color: #fff; margin: 25px 0; font-size: 16px; text-align: center; outline: none; font-weight: 700; }
         .auth-input:focus { border-color: #facc15; }
-        .auth-btn { width: 100%; padding: 16px; border-radius: 12px; background: linear-gradient(to bottom, #fef08a 0%, #ca8a04 100%); color: #451a03; font-weight: 900; border: 2px solid #fff; font-size: 15px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: transform 0.1s; }
-        .auth-btn:active { transform: scale(0.96); }
-        
-        /* Profile Badge */
-        .profile-badge { position: fixed; top: 15px; left: 15px; background: rgba(20, 5, 30, 0.85); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 25px; color: #fff; font-size: 12px; font-weight: 800; z-index: 5; border: 1px solid rgba(250, 204, 21, 0.3); transition: opacity 0.3s, transform 0.3s; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .profile-badge.hide { opacity: 0; pointer-events: none; transform: translateY(-20px); }
-        .lvl-circle { background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); color: #000; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; border: 1px solid #fff; }
-        .xp-bar-container { width: 70px; height: 5px; background: #334155; border-radius: 3px; margin-top: 4px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
-        .xp-bar { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 0%; transition: width 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+        .auth-btn { width: 100%; padding: 16px; border-radius: 12px; background: linear-gradient(to bottom, #fef08a 0%, #ca8a04 100%); color: #451a03; font-weight: 900; border: 2px solid #fff; font-size: 15px; cursor: pointer; text-transform: uppercase; }
 
-        /* Navigation Slider */
+        .profile-badge { position: fixed; top: 15px; left: 15px; background: rgba(20, 5, 30, 0.85); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 25px; color: #fff; font-size: 12px; font-weight: 800; z-index: 5; border: 1px solid rgba(250, 204, 21, 0.3); display: flex; align-items: center; gap: 10px; transition: opacity 0.3s; }
+        .profile-badge.hide { opacity: 0; pointer-events: none; }
+        .lvl-circle { background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); color: #000; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; border: 1px solid #fff; }
+        .xp-bar-container { width: 70px; height: 5px; background: #334155; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+        .xp-bar { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 0%; transition: width 0.5s ease; }
+
         #slider { display: flex; width: 500vw; height: 100vh; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         .frame-wrapper { width: 100vw; height: 100vh; }
         iframe { width: 100%; height: 100%; border: none; background: #07070a; }
 
-        /* Bottom Tab Bar */
-        .tab-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 96%; max-width: 450px; height: 65px; background: rgba(15, 5, 24, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 35px; display: flex; justify-content: space-between; padding: 0 5px; z-index: 10000; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .tab-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 96%; max-width: 450px; height: 65px; background: rgba(15, 5, 24, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 35px; display: flex; justify-content: space-between; padding: 0 5px; z-index: 10000; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease; }
         .tab-bar.hide { transform: translateX(-50%) translateY(120px); opacity: 0; pointer-events: none; }
         
         .indicator { position: absolute; top: 6px; bottom: 6px; width: calc(20% - 10px); left: 5px; background: rgba(250, 204, 21, 0.2); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 30px; transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1); z-index: 1; }
         .tab-btn { flex: 1; height: 100%; border: none; background: transparent; color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; z-index: 2; transition: color 0.3s; text-transform: uppercase; cursor: pointer; }
-        .tab-btn i { font-size: 18px; transition: transform 0.3s; }
         .tab-btn.active { color: #fff; }
-        .tab-btn.active i { transform: translateY(-2px); color: #facc15; }
+        .tab-btn.active i { color: #facc15; }
 
-        /* Global Toast */
-        #toast { position: fixed; top: 25px; left: 50%; transform: translateX(-50%) translateY(-120px); background: rgba(20, 5, 30, 0.95); border: 2px solid #facc15; color: #fef08a; padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 900; z-index: 100000; display: flex; align-items: center; gap: 10px; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 15px 30px rgba(0,0,0,0.8); }
+        #toast { position: fixed; top: 25px; left: 50%; transform: translateX(-50%) translateY(-120px); background: rgba(20, 5, 30, 0.95); border: 2px solid #facc15; color: #fef08a; padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 900; z-index: 100000; display: flex; align-items: center; gap: 10px; transition: transform 0.4s ease; }
         #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
@@ -48,9 +41,9 @@
 
     <div id="authModal">
         <div class="auth-card">
-            <i class="fa-solid fa-crown" style="font-size: 50px; color: #facc15; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(250,204,21,0.5));"></i>
-            <h2 style="color: #fff; font-size: 22px; text-transform: uppercase; letter-spacing: 1px;">Create Profile</h2>
-            <p style="color: #cbd5e1; font-size: 12px; margin-top: 8px;">Track your wins and level up locally.</p>
+            <i class="fa-solid fa-crown" style="font-size: 50px; color: #facc15; margin-bottom: 15px;"></i>
+            <h2 style="color: #fff; font-size: 22px; text-transform: uppercase;">Create Profile</h2>
+            <p style="color: #cbd5e1; font-size: 12px; margin-top: 8px;">Track your wins and level up.</p>
             <input type="text" id="usernameInput" class="auth-input" placeholder="Enter Username" autocomplete="off">
             <button class="auth-btn" onclick="saveProfile()">Start Playing</button>
         </div>
@@ -60,28 +53,25 @@
     <div id="toast"><i class="fa-solid fa-star" style="color: #facc15;"></i> <span id="toastMsg"></span></div>
 
     <div id="slider">
-        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;font-family:sans-serif;font-weight:bold;">Movies Module</div></div>
-        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;font-family:sans-serif;font-weight:bold;">Golden Module</div></div>
-        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;font-family:sans-serif;font-weight:bold;">Audio Module</div></div>
-        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;font-family:sans-serif;font-weight:bold;">Ludo Module</div></div>
+        <div class="frame-wrapper"><iframe src="./movies.html"></iframe></div>
+        <div class="frame-wrapper"><iframe src="./golden.html"></iframe></div>
+        <div class="frame-wrapper"><iframe src="./audio.html"></iframe></div>
+        <div class="frame-wrapper"><iframe id="ludoFrame" src="./ludo.html"></iframe></div>
         <div class="frame-wrapper"><iframe id="carromFrame" src="./carrom.html"></iframe></div>
     </div>
 
     <nav class="tab-bar" id="tabBar">
-        <div class="indicator" id="indicator" style="left: calc(80% - 5px);"></div>
-        <button class="tab-btn" onclick="switchTab(0, '#ef4444')"><i class="fa-solid fa-film"></i><span>Movies</span></button>
+        <div class="indicator" id="indicator" style="left: 5px;"></div>
+        <button class="tab-btn active" onclick="switchTab(0, '#ef4444')"><i class="fa-solid fa-film"></i><span>Movies</span></button>
         <button class="tab-btn" onclick="switchTab(1, '#fbbf24')"><i class="fa-brands fa-youtube"></i><span>Golden</span></button>
         <button class="tab-btn" onclick="switchTab(2, '#a855f7')"><i class="fa-solid fa-compact-disc"></i><span>Audio</span></button>
         <button class="tab-btn" onclick="switchTab(3, '#ef4444')"><i class="fa-solid fa-chess-board"></i><span>Ludo</span></button>
-        <button class="tab-btn active" onclick="switchTab(4, '#f59e0b')"><i class="fa-solid fa-bullseye"></i><span>Carrom</span></button>
+        <button class="tab-btn" onclick="switchTab(4, '#f59e0b')"><i class="fa-solid fa-bullseye"></i><span>Carrom</span></button>
     </nav>
 
     <script>
         let playerProfile = JSON.parse(localStorage.getItem('syncbeat_profile'));
         let isGameActive = false;
-
-        // Default to Carrom tab on load
-        document.getElementById('slider').style.transform = `translateX(-400vw)`; 
 
         if (playerProfile) {
             document.getElementById('authModal').style.display = 'none';
@@ -106,66 +96,57 @@
             distributeProfile();
         }
 
-        function showToastMessage(msg, icon = 'fa-star') {
+        function showToastMessage(msg) {
             const toast = document.getElementById('toast');
-            toast.innerHTML = `<i class="fa-solid ${icon}" style="color: #facc15;"></i> <span>${msg}</span>`;
+            document.getElementById('toastMsg').textContent = msg;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         function addWinExperience() {
-            if(!playerProfile.wins) playerProfile.wins = 0;
-            if(!playerProfile.xp) playerProfile.xp = 0;
-            if(!playerProfile.level) playerProfile.level = 1;
+            if (!playerProfile.wins) playerProfile.wins = 0;
+            if (!playerProfile.xp) playerProfile.xp = 0;
+            if (!playerProfile.level) playerProfile.level = 1;
 
             playerProfile.wins += 1;
             playerProfile.xp += 50; 
             
             let xpNeeded = playerProfile.level * 100;
-            let leveledUp = false;
-
             if (playerProfile.xp >= xpNeeded) {
                 playerProfile.xp -= xpNeeded;
                 playerProfile.level += 1;
-                leveledUp = true;
+                showToastMessage(`Level Up! You are now Level ${playerProfile.level}`);
+            } else {
+                showToastMessage(`Victory! +50 XP Earned`);
             }
 
             localStorage.setItem('syncbeat_profile', JSON.stringify(playerProfile));
             loadProfileUI();
             distributeProfile();
-
-            if (leveledUp) {
-                setTimeout(() => showToastMessage(`Level Up! You are now Level ${playerProfile.level}`, 'fa-arrow-up'), 500);
-            } else {
-                setTimeout(() => showToastMessage(`Victory! +50 XP Earned`, 'fa-trophy'), 500);
-            }
         }
 
         function loadProfileUI() {
             const badge = document.getElementById('profileBadge');
             badge.style.display = 'flex';
-            
             let xpNeeded = playerProfile.level * 100;
             let xpPercent = (playerProfile.xp / xpNeeded) * 100;
 
             badge.innerHTML = `
                 <div class="lvl-circle">${playerProfile.level || 1}</div>
                 <div style="display:flex; flex-direction:column;">
-                    <span style="letter-spacing: 0.5px;">${playerProfile.name} <span style="color:#94a3b8; font-size:9px; margin-left:4px; font-weight: normal;">${playerProfile.id}</span></span>
+                    <span>${playerProfile.name} <span style="color:#94a3b8; font-size:9px;">${playerProfile.id}</span></span>
                     <div class="xp-bar-container"><div class="xp-bar" style="width: ${xpPercent}%"></div></div>
                 </div>
             `;
         }
 
         function distributeProfile() {
-            // Pass profile data to the iframes once they are loaded
             setTimeout(() => {
                 const carromWin = document.getElementById('carromFrame').contentWindow;
                 if (carromWin) carromWin.postMessage({ type: 'AUTH', profile: playerProfile }, '*');
-            }, 1000);
+            }, 800);
         }
 
-        // Listen for messages coming from the game frames
         window.addEventListener('message', (e) => {
             if (e.data.sender !== 'syncbeat') return;
             const tabBar = document.getElementById('tabBar');
@@ -179,32 +160,23 @@
                 isGameActive = false;
                 tabBar.classList.remove('hide');
                 profileBadge.classList.remove('hide');
-            } else if (e.data.action === 'MATCH_WON') {
-                // Award XP if Player 1 (the local profile) wins
-                if (e.data.player === 1) {
-                    addWinExperience();
-                }
+            } else if (e.data.action === 'MATCH_WON' && e.data.player === 1) {
+                addWinExperience();
             }
         });
 
         function switchTab(index, color) {
             if (isGameActive) {
-                showToastMessage(`Match in progress. Please Quit match first!`, 'fa-lock');
+                showToastMessage(`Match in progress. Please Quit match first!`);
                 return;
             }
 
             document.getElementById('slider').style.transform = `translateX(-${index * 100}vw)`;
             const positions = ['5px', 'calc(20% - 1px)', 'calc(40% - 3px)', 'calc(60% - 5px)', 'calc(80% - 5px)'];
-            
             document.getElementById('indicator').style.left = positions[index];
             
-            // Highlight the active tab text and icon
             document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-                if (i === index) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', i === index);
             });
         }
     </script>
