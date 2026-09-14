@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Carrom Pool Pro - Local</title>
+    <title>Carrom Pool Pro - Authentic Physics & Rules</title>
     <style>
         :root {
             --bg-color: #2a0a3a;
@@ -17,13 +17,14 @@
         
         body, html { 
             width: 100vw; height: 100vh; 
-            background: radial-gradient(circle at center, var(--bg-color) 0%, #0f0514 100%); 
+            background: radial-gradient(circle at top, #4a0e4e 0%, #1e0524 100%); 
             color: var(--text-light); 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             overflow: hidden; display: flex; flex-direction: column; 
-            justify-content: space-between; align-items: center; padding: 10px 0; 
+            justify-content: space-between; align-items: center; padding: 15px 0; 
         }
 
+        /* Overlays (Menus) */
         .overlay { 
             position: fixed; inset: 0; background: rgba(10, 2, 15, 0.95); backdrop-filter: blur(8px); 
             z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; 
@@ -32,130 +33,159 @@
         .overlay.hidden { opacity: 0; pointer-events: none; }
         
         .menu-card { 
-            background: #370b3b; width: 100%; max-width: 380px; max-height: 90vh; overflow-y: auto;
-            border-radius: 20px; padding: 25px 20px; border: 2px solid var(--gold-trim); 
+            background: #370b3b; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto;
+            border-radius: 20px; padding: 30px 20px; border: 2px solid var(--gold-trim); 
             text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9); 
         }
         
-        .menu-title { font-size: 26px; font-weight: 900; color: var(--gold-trim); margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 4px 15px rgba(250, 204, 21, 0.5); }
+        .menu-title { font-size: 28px; font-weight: 900; color: var(--gold-trim); margin-bottom: 25px; text-transform: uppercase; text-shadow: 0 4px 15px rgba(250, 204, 21, 0.5); }
         
         .btn-main { 
-            width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 900; 
-            cursor: pointer; border: none; margin-bottom: 12px; text-transform: uppercase; 
+            width: 100%; padding: 16px; border-radius: 12px; font-size: 15px; font-weight: 900; 
+            cursor: pointer; border: none; margin-bottom: 15px; text-transform: uppercase; 
             color: #451a03; background: linear-gradient(to bottom, var(--btn-grad-1) 0%, var(--btn-grad-2) 100%); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 2px solid #fff; transition: transform 0.1s; 
         }
-        .btn-main:active { transform: scale(0.96); }
+        .btn-main:active { transform: scale(0.95); }
         .btn-main.secondary { background: linear-gradient(to bottom, #60a5fa 0%, #1d4ed8 100%); color: #fff; border-color: #bfdbfe; }
         .btn-main.danger { background: linear-gradient(to bottom, #f87171 0%, #b91c1c 100%); color: #fff; border-color: #fca5a5; }
 
-        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; text-align: left; }
-        .setting-label { font-size: 13px; font-weight: 700; color: #e9d5ff; }
-        .setting-select { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--gold-trim); background: #1e0524; color: #fff; font-weight: bold; outline: none; }
-        .rules-text { text-align: left; font-size: 13px; line-height: 1.5; color: #e9d5ff; margin-bottom: 15px; }
+        /* Settings Form */
+        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; text-align: left; }
+        .setting-label { font-size: 14px; font-weight: 700; color: #e9d5ff; }
+        .setting-select { padding: 8px; border-radius: 8px; border: 1px solid var(--gold-trim); background: #1e0524; color: #fff; font-weight: bold; outline: none; }
+        .settings-warning { color: #fca5a5; font-size: 12px; margin-bottom: 15px; font-weight: bold; }
 
+        /* Rules Text */
+        .rules-text { text-align: left; font-size: 13px; line-height: 1.5; color: #e9d5ff; margin-bottom: 20px; }
+        .rules-text h3 { color: var(--gold-trim); margin-top: 10px; margin-bottom: 5px; }
+
+        /* HUD - Top */
         .hud-top { 
             width: 100%; max-width: 480px; display: flex; justify-content: space-between; align-items: flex-start; 
-            padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.4s; 
+            padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.5s; 
         }
         .hud-top.visible { opacity: 1; }
         
-        .player-hud { display: flex; align-items: center; gap: 10px; opacity: 0.6; transition: all 0.3s; }
+        .player-hud { display: flex; align-items: center; gap: 10px; transition: transform 0.3s; opacity: 0.5; }
         .player-hud.right { flex-direction: row-reverse; text-align: right; }
-        .player-hud.active-turn { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.4)); }
+        .player-hud.active-turn { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.5)); }
         
-        .avatar-box { position: relative; width: 44px; height: 44px; background: #fff; border-radius: 8px; border: 2px solid var(--gold-trim); padding: 2px; }
-        .avatar-box .inner { width: 100%; height: 100%; background: #334155; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .avatar-box { position: relative; width: 48px; height: 48px; background: #fff; border-radius: 8px; border: 2px solid var(--gold-trim); padding: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .avatar-box .inner { width: 100%; height: 100%; background: #334155; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #94a3b8; }
         
         .name-score { display: flex; flex-direction: column; justify-content: center; }
-        .name-score .name { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 2px; }
-        .name-score .score { font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 4px; }
+        .name-score .name { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+        .name-score .score { font-size: 16px; font-weight: 900; display: flex; align-items: center; gap: 5px; }
         .player-hud.right .score { justify-content: flex-end; }
         
-        .coin-icon { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset -1px -1px 3px rgba(0,0,0,0.5); }
-        .coin-icon.white { background: #fff; }
-        .coin-icon.black { background: #1e293b; }
+        .coin-icon { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.5); }
+        .coin-icon.white { background: radial-gradient(circle at 30% 30%, #fff, #d1d5db); }
+        .coin-icon.black { background: radial-gradient(circle at 30% 30%, #64748b, #0f172a); }
 
         .center-hud { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .turn-indicator { background: rgba(0,0,0,0.6); border: 1px solid var(--gold-trim); padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; color: var(--gold-trim); margin-bottom: 4px; }
+        .turn-indicator { background: rgba(0,0,0,0.6); border: 1px solid var(--gold-trim); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; color: var(--gold-trim); margin-bottom: 5px; }
         .queen-status { font-size: 10px; font-weight: bold; background: rgba(220, 38, 38, 0.2); border: 1px solid #ef4444; padding: 2px 8px; border-radius: 8px; color: #fca5a5; }
 
+        /* Canvas Game Board */
         .board-container { 
-            position: relative; width: 92vw; height: 92vw; max-width: 440px; max-height: 440px; 
+            position: relative; width: 95vw; height: 95vw; max-width: 450px; max-height: 450px; 
             display: flex; align-items: center; justify-content: center; 
-            opacity: 0; transform: scale(0.92); transition: all 0.4s ease; 
+            opacity: 0; transform: scale(0.9); transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
             margin: auto 0;
         }
         .board-container.visible { opacity: 1; transform: scale(1); }
-        canvas { width: 100%; height: 100%; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.9); cursor: crosshair; }
+        canvas { width: 100%; height: 100%; border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); cursor: crosshair; touch-action: none; }
 
+        /* HUD - Bottom */
         .hud-bottom { 
             width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; 
-            gap: 12px; padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.4s; 
+            gap: 20px; padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.5s; 
         }
         .hud-bottom.visible { opacity: 1; }
         
         .slider-container { 
-            width: 270px; height: 34px; background: linear-gradient(to bottom, #a66a38, #6b3e18); 
-            border-radius: 17px; border: 2px solid #3e200c; position: relative; 
-            box-shadow: 0 8px 16px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.2); 
+            width: 280px; height: 36px; background: linear-gradient(to bottom, #a66a38, #6b3e18); 
+            border-radius: 18px; border: 2px solid #3e200c; position: relative; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 2px 5px rgba(255,255,255,0.2); 
+            transition: opacity 0.3s;
         }
         .slider-container.disabled { opacity: 0.4; pointer-events: none; }
-        .striker-track { position: absolute; left: 16px; right: 16px; top: 50%; transform: translateY(-50%); height: 4px; background: #3e200c; border-radius: 2px; }
+        .striker-track { position: absolute; left: 18px; right: 18px; top: 50%; transform: translateY(-50%); height: 4px; background: #3e200c; border-radius: 2px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8); }
         
         .control-knob { 
-            position: absolute; width: 36px; height: 36px; 
+            position: absolute; width: 38px; height: 38px; 
             background: radial-gradient(circle at 30% 30%, #ef4444, #991b1b); 
-            border-radius: 50%; top: -3px; left: calc(50% - 18px); cursor: pointer; 
+            border-radius: 50%; top: -3px; left: calc(50% - 19px); cursor: pointer; 
             border: 2px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.6); 
             display: flex; align-items: center; justify-content: center; 
         }
-        .control-knob::after { content: '★'; color: #fff; font-size: 15px; font-weight: 900; }
+        .control-knob::after { content: '★'; color: #fff; font-size: 16px; font-weight: 900; }
 
         .action-buttons { width: 100%; display: flex; justify-content: space-between; align-items: center; }
         .btn-icon { 
-            width: 44px; height: 44px; background: radial-gradient(circle at 30% 30%, var(--btn-grad-1) 0%, var(--btn-grad-2) 100%); 
-            border: 2px solid #fff; border-radius: 50%; color: #451a03; font-size: 18px; 
+            width: 50px; height: 50px; background: radial-gradient(circle at 30% 30%, var(--btn-grad-1) 0%, var(--btn-grad-2) 100%); 
+            border: 2px solid #fff; border-radius: 50%; color: #451a03; font-size: 20px; 
             display: flex; align-items: center; justify-content: center; cursor: pointer; 
-            box-shadow: 0 0 12px rgba(250, 204, 21, 0.4); 
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.4), 0 8px 15px rgba(0,0,0,0.5); transition: transform 0.1s; 
         }
-        .btn-icon:active { transform: scale(0.92); }
+        .btn-icon:active { transform: scale(0.9); }
 
+        /* Toasts */
         #toast { 
-            position: fixed; top: 110px; left: 50%; transform: translateX(-50%) translateY(-20px); 
+            position: fixed; top: 120px; left: 50%; transform: translateX(-50%) translateY(-20px); 
             background: rgba(55, 11, 59, 0.95); border: 2px solid var(--gold-trim); color: var(--btn-grad-1); 
-            padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 900; z-index: 2000; 
-            opacity: 0; transition: all 0.3s; pointer-events: none; text-align: center;
+            padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 900; z-index: 2000; 
+            opacity: 0; transition: all 0.3s; box-shadow: 0 15px 30px rgba(0,0,0,0.7); pointer-events: none; text-align: center;
         }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
+    <!-- Main Menu -->
     <div class="overlay" id="mainMenu">
         <div class="menu-card">
-            <div class="menu-title">Carrom Pro</div>
-            <button class="btn-main" onclick="GameApp.startMatch()">Play Local 2-Player</button>
-            <button class="btn-main secondary" onclick="GameApp.openSettings()">Settings</button>
+            <div class="menu-title">Carrom Pool Pro</div>
+            <button class="btn-main" onclick="GameApp.startMatch('local')">Play Local 2-Player</button>
+            <button class="btn-main secondary" onclick="GameApp.openSettings()">Rules & Settings</button>
             <button class="btn-main secondary" onclick="GameApp.openRules()">How to Play</button>
         </div>
     </div>
 
+    <!-- Settings Menu -->
     <div class="overlay hidden" id="settingsMenu">
         <div class="menu-card">
-            <div class="menu-title" style="font-size:20px;">Settings</div>
+            <div class="menu-title" style="font-size:22px;">Settings</div>
+            <div class="settings-warning" id="settingsLockWarning" style="display:none;">Rules are locked during an active match.</div>
+            
             <div class="setting-row">
                 <span class="setting-label">Ruleset</span>
-                <select class="setting-select" id="optRuleset" onchange="GameApp.updatePresets()">
+                <select class="setting-select locked-in-game" id="optRuleset" onchange="GameApp.updatePresets()">
                     <option value="standard">Standard</option>
+                    <option value="casual">Casual</option>
                     <option value="strict">Strict</option>
                 </select>
             </div>
             <div class="setting-row">
                 <span class="setting-label">Queen Required</span>
-                <select class="setting-select" id="optQueenReq">
+                <select class="setting-select locked-in-game" id="optQueenReq">
                     <option value="true">Yes</option>
                     <option value="false">No</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Queen Cover</span>
+                <select class="setting-select locked-in-game" id="optQueenCover">
+                    <option value="strict">Strict (Same Turn)</option>
+                    <option value="none">None</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Foul Penalty</span>
+                <select class="setting-select locked-in-game" id="optFoulPenalty">
+                    <option value="return_coin">Return 1 Coin</option>
+                    <option value="lose_turn">Lose Turn Only</option>
                 </select>
             </div>
             <div class="setting-row">
@@ -165,137 +195,166 @@
                     <option value="false">Off</option>
                 </select>
             </div>
+
             <button class="btn-main" onclick="GameApp.closeSettings()">Save & Close</button>
         </div>
     </div>
 
+    <!-- Rules Menu -->
     <div class="overlay hidden" id="rulesMenu">
-        <div class="menu-card">
-            <div class="menu-title" style="font-size:20px;">How to Play</div>
+        <div class="menu-card" style="max-width: 450px;">
+            <div class="menu-title" style="font-size:22px;">How to Play</div>
             <div class="rules-text">
-                <b>Objective:</b> Pocket all 9 of your assigned coins.<br><br>
-                <b>Controls:</b> Drag slider to position striker. Drag backward from striker to set aim and power.<br><br>
-                <b>Queen Cover:</b> Pocket the Red Queen and cover it by pocketing one of your own coins on the same shot.
+                <h3>Extra Turn Rules</h3>
+                If you pocket your own coin, you get another turn! Even if you accidentally pocket an opponent's coin on the same shot, as long as your own coin goes in, you keep your turn.
+                <h3>Queen Rules (Standard)</h3>
+                The Red Queen can be pocketed at any time. However, you must pocket one of your own coins on the same turn to "Cover" the Queen. If you fail, the Queen is returned to the center.
+                <h3>Fouls</h3>
+                Pocketing the Striker is a foul. Your turn ends immediately, and you must return one of your previously pocketed coins to the board (if you have any).
             </div>
-            <button class="btn-main" onclick="document.getElementById('rulesMenu').classList.add('hidden')">Back</button>
+            <button class="btn-main" onclick="document.getElementById('rulesMenu').classList.add('hidden')">Got it!</button>
         </div>
     </div>
 
+    <!-- Pause Menu -->
     <div class="overlay hidden" id="pauseMenu">
         <div class="menu-card">
             <div class="menu-title">Paused</div>
             <button class="btn-main" onclick="GameApp.resumeMatch()">Resume</button>
+            <button class="btn-main secondary" onclick="GameApp.openSettings()">Settings</button>
             <button class="btn-main danger" onclick="GameApp.quitMatch()">Quit Match</button>
         </div>
     </div>
 
+    <!-- Game Over Menu -->
     <div class="overlay hidden" id="gameOverMenu">
         <div class="menu-card">
-            <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
-            <h2 id="winTitle" style="font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 10px;">Player 1 Wins!</h2>
-            <p id="winDesc" style="font-size: 13px; color: #e9d5ff; margin-bottom: 20px;">All coins successfully pocketed.</p>
-            <button class="btn-main" onclick="GameApp.startMatch()">Play Again</button>
+            <div style="font-size: 60px; color: var(--gold-trim); margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(250,204,21,0.5));">🏆</div>
+            <h2 id="winTitle" style="font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 10px;">Player 1 Wins!</h2>
+            <p id="winDesc" style="font-size: 13px; color: #e9d5ff; margin-bottom: 25px;">All coins successfully pocketed.</p>
+            <button class="btn-main" onclick="GameApp.startMatch('local')">Play Again</button>
             <button class="btn-main secondary" onclick="GameApp.quitMatch()">Main Menu</button>
         </div>
     </div>
 
+    <!-- Global Toast -->
     <div id="toast">Message</div>
 
+    <!-- GAME UI -->
+    <!-- Top HUD -->
     <div class="hud-top" id="hudTop">
         <div class="player-hud left" id="p1Card">
             <div class="avatar-box"><div class="inner">👤</div></div>
             <div class="name-score">
                 <span class="name" id="p1Name">Player 1</span>
-                <span class="score"><span id="p1Count">9</span> <div class="coin-icon white"></div></span>
+                <span class="score"><span id="p1Count">0</span> <div class="coin-icon white"></div></span>
             </div>
         </div>
+        
         <div class="center-hud">
             <div class="turn-indicator" id="turnIndicator">P1 TURN</div>
             <div class="queen-status" id="queenStatusIndicator">Queen: On Board</div>
         </div>
+
         <div class="player-hud right" id="p2Card">
             <div class="name-score">
                 <span class="name">Player 2</span>
-                <span class="score"><div class="coin-icon black"></div> <span id="p2Count">9</span></span>
+                <span class="score"><div class="coin-icon black"></div> <span id="p2Count">0</span></span>
             </div>
             <div class="avatar-box"><div class="inner">🤖</div></div>
         </div>
     </div>
 
+    <!-- Canvas Engine -->
     <div class="board-container" id="boardContainer">
         <canvas id="carromCanvas" width="1000" height="1000"></canvas>
     </div>
 
+    <!-- Bottom HUD -->
     <div class="hud-bottom" id="hudBottom">
         <div class="slider-container" id="sliderBar">
             <div class="striker-track"></div>
             <div class="control-knob" id="controlKnob"></div>
         </div>
         <div class="action-buttons">
-            <button class="btn-icon" onclick="GameApp.pauseMatch()" title="Pause"><b>||</b></button>
-            <button class="btn-icon" onclick="GameApp.openSettings()" title="Settings">⚙</button>
+            <button class="btn-icon" onclick="GameApp.pauseMatch()" title="Pause"><span style="font-family:sans-serif;font-weight:900;">||</span></button>
+            <button class="btn-icon" onclick="GameApp.openSettings()" title="Settings"><span style="font-size:24px;">⚙</span></button>
         </div>
     </div>
 
+    <!-- GAME SCRIPTS -->
     <script>
+        // --- 1. AUDIO SYSTEM ---
         const AudioSystem = {
             ctx: null,
             enabled: true,
             init() {
-                try {
-                    if (!this.ctx) {
-                        const AudioContext = window.AudioContext || window.webkitAudioContext;
-                        this.ctx = new AudioContext();
-                    }
-                    if (this.ctx.state === 'suspended') this.ctx.resume();
-                } catch(e) {}
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') this.ctx.resume();
             },
             toggleSound(val) { this.enabled = val; },
             play(type, intensity = 1) {
                 if (!this.enabled || !this.ctx) return;
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    let vol = Math.max(0.02, Math.min(0.3, intensity / 50));
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
 
-                    if (type === 'hit') {
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(500, this.ctx.currentTime);
-                        osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.05);
-                        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
-                        osc.start(); osc.stop(this.ctx.currentTime + 0.05);
-                    } else if (type === 'pocket') {
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(750, this.ctx.currentTime);
-                        osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.18);
-                        gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
-                        osc.start(); osc.stop(this.ctx.currentTime + 0.18);
-                    } else if (type === 'shoot') {
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-                        osc.frequency.linearRampToValueAtTime(320, this.ctx.currentTime + 0.08);
-                        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-                        osc.start(); osc.stop(this.ctx.currentTime + 0.08);
-                    }
-                } catch(err) {}
+                let vol = Math.max(0.02, Math.min(0.3, intensity / 50));
+
+                if (type === 'hit') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(500, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.05);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.05);
+                } else if (type === 'pocket') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+                } else if (type === 'shoot') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(300, this.ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+                } else if (type === 'foul') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+                } else if (type === 'win') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(600, this.ctx.currentTime + 0.2);
+                    osc.frequency.setValueAtTime(800, this.ctx.currentTime + 0.4);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.8);
+                    osc.start(); osc.stop(this.ctx.currentTime + 0.8);
+                }
             }
         };
 
+        // --- 2. CONFIG & SETTINGS ---
         const Config = {
             boardSize: 1000,
             friction: 0.985,
             wallRestitution: 0.75,
-            coinRadius: 24,
-            strikerRadius: 34,
+            coinRadius: 26,
+            strikerRadius: 36,
             pocketRadius: 55,
-            pocketOffset: 85,
-            innerBoardStart: 45,
-            innerBoardSize: 910,
+            innerBoardStart: 60,
+            innerBoardSize: 880,
             baseY_P1: 800,
             baseY_P2: 200,
             baseMinX: 250,
@@ -306,155 +365,25 @@
 
         const Settings = {
             queenReq: true,
-            queenCover: 'strict',
+            queenCover: 'strict', // strict, none
+            foulPenalty: 'return_coin', // return_coin, lose_turn
             p1Color: 'white',
             p2Color: 'black'
         };
 
-        const GameState = {
-            state: 'MENU',
-            turn: 1,
-            p1Score: 9,
-            p2Score: 9,
-            queenStatus: 'ON_BOARD',
-            queenPocketedBy: null,
-            coins: [],
-            // Initialized by default to prevent undefined/null crashes on load
-            striker: { id: 'striker', c: '#fffbeb', x: 500, y: Config.baseY_P1, r: Config.strikerRadius, vx: 0, vy: 0, mass: 1.5, active: true },
-            particles: [],
-            pocketedThisTurn: [],
-            cameraShake: 0,
-
-            initNewMatch() {
-                this.state = 'READY';
-                this.turn = 1;
-                this.p1Score = 9;
-                this.p2Score = 9;
-                this.queenStatus = 'ON_BOARD';
-                this.queenPocketedBy = null;
-                this.pocketedThisTurn = [];
-                
-                this.coins = [{ id: 'queen', c: '#dc2626', x: 500, y: 500, r: Config.coinRadius, vx: 0, vy: 0, mass: 1, active: true, type: 'queen' }];
-                for (let i = 0; i < 12; i++) {
-                    let angle = i * (Math.PI / 6) + (Math.PI / 12);
-                    let type = i % 2 === 0 ? 'black' : 'white';
-                    this.coins.push({ id: `outer_${i}`, type: type, x: 500 + Math.cos(angle)*100, y: 500 + Math.sin(angle)*100, r: Config.coinRadius, vx: 0, vy: 0, mass: 1, active: true });
-                }
-                for (let i = 0; i < 6; i++) {
-                    let angle = i * (Math.PI / 3);
-                    let type = i % 2 === 0 ? 'white' : 'black';
-                    this.coins.push({ id: `inner_${i}`, type: type, x: 500 + Math.cos(angle)*50, y: 500 + Math.sin(angle)*50, r: Config.coinRadius, vx: 0, vy: 0, mass: 1, active: true });
-                }
-                
-                this.resetStriker();
-                UIManager.updateHUD();
-                UIManager.toggleSlider(true);
-            },
-
-            resetStriker() {
-                this.striker.active = true;
-                this.striker.vx = 0; this.striker.vy = 0;
-                this.striker.y = this.turn === 1 ? Config.baseY_P1 : Config.baseY_P2;
-                this.striker.x = 500;
-                document.getElementById('controlKnob').style.left = `calc(50% - 18px)`;
-                UIManager.toggleSlider(true);
-            },
-
-            isMoving() {
-                if (!this.striker) return false;
-                if (Math.abs(this.striker.vx) > 0.05 || Math.abs(this.striker.vy) > 0.05) return true;
-                for (let c of this.coins) {
-                    if (c.active && (Math.abs(c.vx) > 0.05 || Math.abs(c.vy) > 0.05)) return true;
-                }
-                return false;
-            },
-
-            processTurnResolution() {
-                this.state = 'RESOLVING';
-                let keepTurn = false;
-                let strikerFoul = !this.striker.active;
-                let myColor = this.turn === 1 ? Settings.p1Color : Settings.p2Color;
-                let oppColor = this.turn === 1 ? Settings.p2Color : Settings.p1Color;
-                let pocketedOwn = false;
-
-                if (strikerFoul) {
-                    UIManager.showToast("Foul: Striker Pocketed!");
-                    this.pocketedThisTurn.forEach(pc => { pc.active = true; pc.x = 500; pc.y = 500; });
-                    let score = this.turn === 1 ? this.p1Score : this.p2Score;
-                    if (score < 9) {
-                        let penaltyCoin = this.coins.find(c => !c.active && c.type === myColor);
-                        if (penaltyCoin) { penaltyCoin.active = true; penaltyCoin.x = 500; penaltyCoin.y = 500; }
-                        if (this.turn === 1) this.p1Score++; else this.p2Score++;
-                    }
-                } else {
-                    this.pocketedThisTurn.forEach(pc => {
-                        if (pc.type === myColor) {
-                            if (this.turn === 1) this.p1Score--; else this.p2Score--;
-                            pocketedOwn = true; keepTurn = true;
-                        } else if (pc.type === oppColor) {
-                            if (this.turn === 1) this.p2Score--; else this.p1Score--;
-                        } else if (pc.type === 'queen') {
-                            this.queenStatus = 'PENDING_COVER';
-                            this.queenPocketedBy = this.turn;
-                            UIManager.showToast("Queen Pocketed! Must cover.");
-                            keepTurn = true;
-                        }
-                    });
-
-                    if (this.queenStatus === 'PENDING_COVER' && this.queenPocketedBy === this.turn) {
-                        if (pocketedOwn) {
-                            this.queenStatus = 'COVERED';
-                            UIManager.showToast("Queen successfully covered!");
-                        } else if (this.pocketedThisTurn.length > 0 && !pocketedOwn && !this.pocketedThisTurn.find(c=>c.type==='queen')) {
-                            let q = this.coins.find(c => c.type === 'queen');
-                            if (q) { q.active = true; q.x = 500; q.y = 500; }
-                            this.queenStatus = 'ON_BOARD'; this.queenPocketedBy = null;
-                            UIManager.showToast("Failed to cover Queen. Returned.");
-                        }
-                    }
-                }
-
-                let qSecured = !Settings.queenReq || this.queenStatus === 'COVERED';
-                if (this.p1Score <= 0 && (qSecured || this.queenPocketedBy === 1)) {
-                    this.triggerWin(1); return;
-                } else if (this.p2Score <= 0 && (qSecured || this.queenPocketedBy === 2)) {
-                    this.triggerWin(2); return;
-                }
-
-                this.pocketedThisTurn = [];
-                this.resetStriker();
-                
-                if (!keepTurn || strikerFoul) {
-                    this.turn = this.turn === 1 ? 2 : 1;
-                    if (this.queenStatus === 'PENDING_COVER') {
-                        let q = this.coins.find(c => c.type === 'queen');
-                        if (q) { q.active = true; q.x = 500; q.y = 500; }
-                        this.queenStatus = 'ON_BOARD'; this.queenPocketedBy = null;
-                    }
-                }
-                
-                UIManager.updateHUD();
-                this.state = 'READY';
-            },
-
-            triggerWin(playerNum) {
-                this.state = 'GAME_OVER';
-                document.getElementById('winTitle').innerText = `Player ${playerNum} Wins!`;
-                document.getElementById('gameOverMenu').classList.remove('hidden');
-                window.parent.postMessage({ sender: 'syncbeat', action: 'MATCH_WON', player: playerNum }, '*');
-            }
-        };
-
+        // --- 3. UI MANAGER ---
         const UIManager = {
-            showToast(msg, duration = 2200) {
+            showToast(msg, duration = 2500) {
                 const t = document.getElementById('toast');
                 t.innerText = msg;
                 t.classList.add('show');
                 setTimeout(() => t.classList.remove('show'), duration);
             },
             updateHUD() {
+                // Display scores (coins pocketed)
                 document.getElementById('p1Count').innerText = GameState.p1Score;
                 document.getElementById('p2Count').innerText = GameState.p2Score;
+                
                 const p1Card = document.getElementById('p1Card');
                 const p2Card = document.getElementById('p2Card');
                 const banner = document.getElementById('turnIndicator');
@@ -469,18 +398,181 @@
                     banner.innerText = "P2 TURN (BLACK)";
                 }
 
+                // Queen Status Updates
                 const qStat = document.getElementById('queenStatusIndicator');
-                if (GameState.queenStatus === 'ON_BOARD') { qStat.innerText = "Queen: On Board"; }
-                else if (GameState.queenStatus === 'PENDING_COVER') { qStat.innerText = `Queen: Pending Cover (P${GameState.queenPocketedBy})`; }
-                else if (GameState.queenStatus === 'COVERED') { qStat.innerText = `Queen: Secured (P${GameState.queenPocketedBy})`; }
+                if (GameState.queenStatus === 'ON_BOARD') { qStat.innerText = "Queen: On Board"; qStat.style.color = "#fca5a5"; }
+                else if (GameState.queenStatus === 'PENDING_COVER') { qStat.innerText = `Queen: Pending Cover (P${GameState.queenPocketedBy})`; qStat.style.color = "#fef08a"; }
+                else if (GameState.queenStatus === 'COVERED') { qStat.innerText = `Queen: Secured by P${GameState.queenPocketedBy}`; qStat.style.color = "#86efac"; }
             },
             toggleSlider(enable) {
                 const slider = document.getElementById('sliderBar');
-                if (enable) slider.classList.remove('disabled');
+                if(enable) slider.classList.remove('disabled');
                 else slider.classList.add('disabled');
             }
         };
 
+        // --- 4. GAME STATE & RULES ENGINE ---
+        const GameState = {
+            state: 'MENU', // MENU, READY, AIMING, SHOOTING, PAUSED, GAME_OVER
+            turn: 1,
+            p1Score: 0, // Counts up to 9
+            p2Score: 0,
+            queenStatus: 'ON_BOARD', // ON_BOARD, PENDING_COVER, COVERED
+            queenPocketedBy: null,
+            coins: [],
+            striker: null,
+            particles: [],
+            pocketedThisTurn: [],
+            cameraShake: 0,
+            firstShotTaken: false,
+
+            initNewMatch() {
+                this.state = 'READY';
+                this.turn = 1;
+                this.p1Score = 0;
+                this.p2Score = 0;
+                this.queenStatus = 'ON_BOARD';
+                this.queenPocketedBy = null;
+                this.pocketedThisTurn = [];
+                this.firstShotTaken = false;
+                
+                this.striker = { id: 'striker', c: '#fffbeb', x: 500, y: Config.baseY_P1, r: Config.strikerRadius, vx: 0, vy: 0, mass: 1.5, active: true, type: 'striker' };
+                this.coins = [{ id: 'queen', c: '#dc2626', x: 500, y: 500, r: Config.coinRadius, vx: 0, vy: 0, mass: 1, active: true, type: 'queen' }];
+                
+                // Outer ring (12 coins)
+                for (let i = 0; i < 12; i++) {
+                    let angle = i * (Math.PI / 6) + (Math.PI / 12);
+                    let type = i % 2 === 0 ? 'black' : 'white';
+                    this.coins.push({ id: `outer_${i}`, type: type, x: 500 + Math.cos(angle)*108, y: 500 + Math.sin(angle)*108, r: Config.coinRadius, vx: 0, vy: 0, mass: 1, active: true });
+                }
+                // Inner ring (6 coins)
+                for (let i = 0; i < 6; i++) {
+                    let angle = i * (Math.PI / 3);
+                    let type = i % 2 === 0 ? 'white' : 'black';
+                    this.coins.push({ id: `inner_${i}`, type: type, x: 500 + Math.cos(angle)*54, y: 500 + Math.sin(angle)*54, r: Config.coinRadius, vx: 0, vy: 0, mass: 1, active: true });
+                }
+                
+                this.resetStriker();
+                UIManager.updateHUD();
+                UIManager.toggleSlider(true);
+            },
+
+            resetStriker() {
+                this.striker.active = true;
+                this.striker.vx = 0; this.striker.vy = 0;
+                this.striker.y = this.turn === 1 ? Config.baseY_P1 : Config.baseY_P2;
+                this.striker.x = 500;
+                document.getElementById('controlKnob').style.left = `calc(50% - 19px)`;
+                UIManager.toggleSlider(true);
+            },
+
+            isMoving() {
+                if (Math.abs(this.striker.vx) > 0.05 || Math.abs(this.striker.vy) > 0.05) return true;
+                for (let c of this.coins) {
+                    if (c.active && (Math.abs(c.vx) > 0.05 || Math.abs(c.vy) > 0.05)) return true;
+                }
+                return false;
+            },
+
+            processTurnResolution() {
+                let keepTurn = false;
+                let strikerFoul = !this.striker.active;
+                let myColor = this.turn === 1 ? Settings.p1Color : Settings.p2Color;
+                let oppColor = this.turn === 1 ? Settings.p2Color : Settings.p1Color;
+
+                let pocketedOwn = false;
+                let coverAttempted = (this.queenStatus === 'PENDING_COVER' && this.queenPocketedBy === this.turn);
+
+                if (strikerFoul) {
+                    AudioSystem.play('foul');
+                    UIManager.showToast("Foul! Striker Pocketed.");
+                    
+                    // Return all coins pocketed on this foul shot
+                    this.pocketedThisTurn.forEach(pc => { pc.active = true; pc.x = 500; pc.y = 500; });
+                    
+                    // Apply penalty: return one already pocketed coin
+                    if (Settings.foulPenalty === 'return_coin') {
+                        let score = this.turn === 1 ? this.p1Score : this.p2Score;
+                        if (score > 0) {
+                            let penaltyCoin = this.coins.find(c => !c.active && c.type === myColor);
+                            if (penaltyCoin) { penaltyCoin.active = true; penaltyCoin.x = 500; penaltyCoin.y = 500; }
+                            if (this.turn === 1) this.p1Score--; else this.p2Score--;
+                        }
+                    }
+                    keepTurn = false; // Foul forces turn switch
+                } else {
+                    // Normal Shot Evaluation
+                    this.pocketedThisTurn.forEach(pc => {
+                        if (pc.type === myColor) {
+                            if (this.turn === 1) this.p1Score++; else this.p2Score++;
+                            pocketedOwn = true;
+                        } else if (pc.type === oppColor) {
+                            if (this.turn === 1) this.p2Score++; else this.p1Score++;
+                        } else if (pc.type === 'queen') {
+                            this.queenStatus = 'PENDING_COVER';
+                            this.queenPocketedBy = this.turn;
+                            UIManager.showToast("Queen Pocketed! Must cover on this turn.");
+                            pocketedOwn = true; // Pocketing queen grants continuation
+                        }
+                    });
+
+                    // Extra Turn Rule: If you pocket your own coin (even alongside others), you keep the turn.
+                    if (pocketedOwn) {
+                        keepTurn = true;
+                    }
+
+                    // Queen Cover Logic evaluation
+                    if (coverAttempted) {
+                        if (pocketedOwn) {
+                            this.queenStatus = 'COVERED';
+                            UIManager.showToast("Queen Covered Successfully!");
+                        } else {
+                            // Cover failed: missed or only pocketed opponent's coin
+                            let q = this.coins.find(c => c.type === 'queen');
+                            if (q) { q.active = true; q.x = 500; q.y = 500; }
+                            this.queenStatus = 'ON_BOARD'; this.queenPocketedBy = null;
+                            UIManager.showToast("Failed to cover Queen. Queen Returned.");
+                        }
+                    }
+                }
+
+                // Check Win Conditions
+                let qSecured = !Settings.queenReq || this.queenStatus === 'COVERED';
+                if (this.p1Score >= 9 && (qSecured || this.queenPocketedBy === 1)) {
+                    this.triggerWin(1); return;
+                } else if (this.p2Score >= 9 && (qSecured || this.queenPocketedBy === 2)) {
+                    this.triggerWin(2); return;
+                }
+
+                // Prepare next turn
+                this.pocketedThisTurn = [];
+                this.resetStriker();
+                
+                if (!keepTurn || strikerFoul) {
+                    this.turn = this.turn === 1 ? 2 : 1;
+                    
+                    // If turn changes and Queen was still pending (e.g. casual rule drift), return it
+                    if (this.queenStatus === 'PENDING_COVER' && Settings.queenCover === 'strict') {
+                        let q = this.coins.find(c => c.type === 'queen');
+                        if (q) { q.active = true; q.x = 500; q.y = 500; }
+                        this.queenStatus = 'ON_BOARD'; this.queenPocketedBy = null;
+                    }
+                }
+                
+                UIManager.updateHUD();
+                this.state = 'READY';
+            },
+
+            triggerWin(playerNum) {
+                this.state = 'GAME_OVER';
+                AudioSystem.play('win');
+                document.getElementById('winTitle').innerText = `Player ${playerNum} Wins!`;
+                document.getElementById('gameOverMenu').classList.remove('hidden');
+            }
+        };
+
+
+        // --- 5. INPUT CONTROLLER ---
         const InputManager = {
             isDragging: false,
             startX: 0, startY: 0,
@@ -490,34 +582,39 @@
                 const sliderBar = document.getElementById('sliderBar');
                 const cvs = document.getElementById('carromCanvas');
 
+                // Baseline Slider Control
                 let isSliding = false;
-                const updatePos = (clientX) => {
+                const updatePos = (e) => {
                     if (GameState.state !== 'READY' && GameState.state !== 'AIMING') return;
                     const rect = sliderBar.getBoundingClientRect();
+                    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     let pos = (clientX - rect.left) / rect.width;
                     pos = Math.max(0.05, Math.min(0.95, pos));
-                    document.getElementById('controlKnob').style.left = `calc(${pos * 100}% - 18px)`;
+                    document.getElementById('controlKnob').style.left = `calc(${pos * 100}% - 19px)`;
                     GameState.striker.x = Config.baseMinX + pos * (Config.baseMaxX - Config.baseMinX);
                 };
 
                 sliderBar.addEventListener('pointerdown', (e) => { 
-                    if (GameState.state === 'READY') { isSliding = true; updatePos(e.clientX); }
+                    if (GameState.state === 'READY') { isSliding = true; updatePos(e); }
                 });
-                window.addEventListener('pointermove', (e) => { if (isSliding) updatePos(e.clientX); });
+                window.addEventListener('pointermove', (e) => { if (isSliding) updatePos(e); });
                 window.addEventListener('pointerup', () => isSliding = false);
 
+                // Aiming & Shooting Control
                 cvs.addEventListener('pointerdown', (e) => {
                     if (GameState.state !== 'READY') return;
                     const rect = cvs.getBoundingClientRect();
-                    const clickX = (e.clientX - rect.left) * (Config.boardSize / rect.width);
-                    const clickY = (e.clientY - rect.top) * (Config.boardSize / rect.height);
+                    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    
+                    const clickX = (clientX - rect.left) * (Config.boardSize / rect.width);
+                    const clickY = (clientY - rect.top) * (Config.boardSize / rect.height);
                     
                     if (Math.hypot(clickX - GameState.striker.x, clickY - GameState.striker.y) < GameState.striker.r * 2) {
                         AudioSystem.init();
                         this.isDragging = true;
-                        try { cvs.setPointerCapture(e.pointerId); } catch(err) {}
                         GameState.state = 'AIMING';
-                        UIManager.toggleSlider(false);
+                        UIManager.toggleSlider(false); 
                         this.startX = clickX; this.startY = clickY;
                         this.currX = clickX; this.currY = clickY;
                     }
@@ -526,14 +623,15 @@
                 cvs.addEventListener('pointermove', (e) => {
                     if (!this.isDragging) return;
                     const rect = cvs.getBoundingClientRect();
-                    this.currX = (e.clientX - rect.left) * (Config.boardSize / rect.width);
-                    this.currY = (e.clientY - rect.top) * (Config.boardSize / rect.height);
+                    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    this.currX = (clientX - rect.left) * (Config.boardSize / rect.width);
+                    this.currY = (clientY - rect.top) * (Config.boardSize / rect.height);
                 });
 
-                const endDrag = (e) => {
+                cvs.addEventListener('pointerup', () => {
                     if (!this.isDragging) return;
                     this.isDragging = false;
-                    try { cvs.releasePointerCapture(e.pointerId); } catch(err) {}
                     
                     let dx = this.currX - this.startX;
                     let dy = this.currY - this.startY;
@@ -541,26 +639,28 @@
                     
                     if (power > 15) {
                         GameState.state = 'SHOOTING';
+                        GameState.firstShotTaken = true;
+                        
                         let scale = Math.min(power, Config.maxPower) / Config.maxPower;
                         GameState.striker.vx = (-dx / power) * scale * Config.powerMultiplier;
                         GameState.striker.vy = (-dy / power) * scale * Config.powerMultiplier;
+                        
                         AudioSystem.play('shoot');
                         if (scale > 0.8) GameState.cameraShake = 6 * scale;
                     } else {
                         GameState.state = 'READY';
                         UIManager.toggleSlider(true);
                     }
-                };
-
-                cvs.addEventListener('pointerup', endDrag);
-                cvs.addEventListener('pointercancel', endDrag);
+                });
             }
         };
 
+        // --- 6. PHYSICS SYSTEM ---
         const PhysicsSystem = {
             checkCollisions() {
                 let entities = [GameState.striker, ...GameState.coins];
                 
+                // Wall Collisions & Movement
                 entities.forEach(e => {
                     if (!e.active) return;
                     if (Math.abs(e.vx) > 0.05 || Math.abs(e.vy) > 0.05) {
@@ -581,10 +681,11 @@
                             AudioSystem.play('hit', Math.abs(e.vy)); 
                         }
                     } else {
-                        e.vx = 0; e.vy = 0;
+                        e.vx = 0; e.vy = 0; 
                     }
                 });
 
+                // Object Collisions (Elastic)
                 for (let i = 0; i < entities.length; i++) {
                     for (let j = i + 1; j < entities.length; j++) {
                         let a = entities[i], b = entities[j];
@@ -595,23 +696,27 @@
                         let minDist = a.r + b.r;
 
                         if (dist < minDist && dist > 0.1) {
+                            // Separate
                             let overlap = (minDist - dist) / 2;
                             let nx = dx / dist, ny = dy / dist;
                             a.x -= nx * overlap; a.y -= ny * overlap;
                             b.x += nx * overlap; b.y += ny * overlap;
                             
+                            // Impulse
                             let kx = b.vx - a.vx; let ky = b.vy - a.vy;
                             let nv = nx * kx + ny * ky;
-                            if (nv > 0) continue;
+                            if (nv > 0) continue; 
 
                             let p = -(1 + 0.9) * nv / ((1/a.mass) + (1/b.mass));
                             a.vx -= (p * nx) / a.mass; a.vy -= (p * ny) / a.mass;
                             b.vx += (p * nx) / b.mass; b.vy += (p * ny) / b.mass;
+                            
                             AudioSystem.play('hit', Math.abs(p));
                         }
                     }
                 }
 
+                // Pocket Check
                 const pockets = [
                     [Config.pocketOffset, Config.pocketOffset], 
                     [Config.boardSize-Config.pocketOffset, Config.pocketOffset], 
@@ -625,25 +730,53 @@
                         if (Math.hypot(e.x - p[0], e.y - p[1]) < Config.pocketRadius) {
                             e.active = false; e.vx = 0; e.vy = 0;
                             AudioSystem.play('pocket');
-                            if (e.id !== 'striker') GameState.pocketedThisTurn.push(e);
+                            this.spawnParticles(p[0], p[1], e.type || 'striker');
+                            if (e.id === 'striker') {
+                                // Handled via striker.active flag in resolve turn
+                            } else {
+                                GameState.pocketedThisTurn.push(e);
+                            }
                         }
                     });
                 });
             },
 
+            spawnParticles(x, y, type) {
+                let color = type === 'white' ? '#fff' : type === 'queen' ? '#ef4444' : '#64748b';
+                for(let i=0; i<10; i++) {
+                    GameState.particles.push({ 
+                        x: x, y: y, 
+                        vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20, 
+                        life: 1, c: color 
+                    });
+                }
+            },
+
             update() {
                 if (GameState.state === 'SHOOTING') {
                     this.checkCollisions();
+                    
+                    // Update particles
+                    for (let i = GameState.particles.length - 1; i >= 0; i--) {
+                        let p = GameState.particles[i];
+                        p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+                        if (p.life <= 0) GameState.particles.splice(i, 1);
+                    }
+
                     if (GameState.cameraShake > 0) GameState.cameraShake *= 0.9;
                     if (GameState.cameraShake < 0.5) GameState.cameraShake = 0;
-                    if (!GameState.isMoving()) GameState.processTurnResolution();
+
+                    if (!GameState.isMoving()) {
+                        GameState.processTurnResolution();
+                    }
                 }
             }
         };
 
+        // --- 7. RENDERER (Carrom Pool Style) ---
         const Renderer = {
             cvs: document.getElementById('carromCanvas'),
-            ctx: document.getElementById('carromCanvas').getContext('2d'),
+            ctx: document.getElementById('carromCanvas').getContext('2d', { alpha: false }),
             
             draw() {
                 let ctx = this.ctx;
@@ -652,90 +785,133 @@
                     ctx.translate((Math.random()-0.5)*GameState.cameraShake, (Math.random()-0.5)*GameState.cameraShake);
                 }
 
-                ctx.fillStyle = '#4a2511';
-                ctx.beginPath(); ctx.roundRect(0, 0, Config.boardSize, Config.boardSize, 40); ctx.fill();
-                
+                // Outer Yellow Trim (behind board)
                 ctx.fillStyle = '#facc15';
-                let cr = 40; let cw = 75;
-                ctx.beginPath(); ctx.moveTo(0, cw); ctx.arcTo(0,0,cw,0,cr); ctx.lineTo(cw,0); ctx.lineTo(cw, cw); ctx.closePath(); ctx.fill(); 
-                ctx.beginPath(); ctx.moveTo(Config.boardSize-cw, 0); ctx.arcTo(Config.boardSize,0,Config.boardSize,cw,cr); ctx.lineTo(Config.boardSize,cw); ctx.lineTo(Config.boardSize-cw, cw); ctx.closePath(); ctx.fill(); 
-                ctx.beginPath(); ctx.moveTo(Config.boardSize, Config.boardSize-cw); ctx.arcTo(Config.boardSize,Config.boardSize,Config.boardSize-cw,Config.boardSize,cr); ctx.lineTo(Config.boardSize-cw,Config.boardSize); ctx.lineTo(Config.boardSize-cw, Config.boardSize-cw); ctx.closePath(); ctx.fill(); 
-                ctx.beginPath(); ctx.moveTo(cw, Config.boardSize); ctx.arcTo(0,Config.boardSize,0,Config.boardSize-cw,cr); ctx.lineTo(0,Config.boardSize-cw); ctx.lineTo(cw, Config.boardSize-cw); ctx.closePath(); ctx.fill(); 
+                ctx.beginPath(); ctx.roundRect(10, 10, Config.boardSize-20, Config.boardSize-20, 45); ctx.fill();
 
-                ctx.fillStyle = '#dcb589';
-                ctx.beginPath(); ctx.roundRect(Config.innerBoardStart, Config.innerBoardStart, Config.innerBoardSize, Config.innerBoardSize, 30); ctx.fill();
+                // Dark Wood Outer Frame
+                ctx.fillStyle = '#3e1f0b';
+                ctx.beginPath(); ctx.roundRect(20, 20, Config.boardSize-40, Config.boardSize-40, 40); ctx.fill();
 
+                // Black Corner Pockets (over the frame)
+                ctx.fillStyle = '#111';
                 const pockets = [[Config.pocketOffset, Config.pocketOffset], [Config.boardSize-Config.pocketOffset, Config.pocketOffset], [Config.pocketOffset, Config.boardSize-Config.pocketOffset], [Config.boardSize-Config.pocketOffset, Config.boardSize-Config.pocketOffset]];
                 pockets.forEach(p => {
-                    let pGrad = ctx.createRadialGradient(p[0]-10, p[1]-10, 5, p[0], p[1], Config.pocketRadius);
-                    pGrad.addColorStop(0, '#18181b'); pGrad.addColorStop(1, '#000');
-                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius, 0, Math.PI*2);
-                    ctx.fillStyle = pGrad; ctx.fill();
-                    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3; ctx.stroke();
+                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius + 5, 0, Math.PI*2); ctx.fill();
                 });
 
-                ctx.strokeStyle = 'rgba(139, 69, 19, 0.4)'; 
+                // Inner Wood Surface
+                let bgGrad = ctx.createRadialGradient(500, 500, 100, 500, 500, 800);
+                bgGrad.addColorStop(0, '#e6c29a'); 
+                bgGrad.addColorStop(1, '#c49a6c'); 
+                ctx.fillStyle = bgGrad;
+                ctx.beginPath(); ctx.roundRect(Config.innerBoardStart, Config.innerBoardStart, Config.innerBoardSize, Config.innerBoardSize, 30); ctx.fill();
+
+                // Draw pockets again inside for depth
+                pockets.forEach(p => {
+                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius, 0, Math.PI*2);
+                    ctx.fillStyle = '#050505'; ctx.fill();
+                    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.stroke();
+                });
+
+                // Markings & Lines
+                ctx.strokeStyle = 'rgba(92, 45, 10, 0.4)'; 
                 ctx.lineWidth = 2;
                 ctx.strokeRect(Config.innerBoardStart+20, Config.innerBoardStart+20, Config.innerBoardSize-40, Config.innerBoardSize-40);
 
+                // Diagonal Arrows
+                ctx.lineWidth = 4;
+                const drawArrow = (x1,y1, x2,y2) => {
+                    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(x1, y1, 12, 0, Math.PI*2); ctx.fillStyle='rgba(92, 45, 10, 0.2)'; ctx.fill(); ctx.stroke();
+                };
+                drawArrow(250, 250, 150, 150); drawArrow(750, 250, 850, 150);
+                drawArrow(250, 750, 150, 850); drawArrow(750, 750, 850, 850);
+
+                // Center Mandala Art
                 ctx.beginPath(); ctx.arc(500, 500, 160, 0, Math.PI*2); ctx.stroke();
-                ctx.beginPath(); ctx.arc(500, 500, 40, 0, Math.PI*2); ctx.fillStyle='rgba(139, 69, 19, 0.2)'; ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.arc(500, 500, 150, 0, Math.PI*2); ctx.stroke();
+                for(let i=0; i<8; i++) {
+                    ctx.beginPath(); ctx.arc(500 + Math.cos(i*Math.PI/4)*75, 500 + Math.sin(i*Math.PI/4)*75, 75, 0, Math.PI*2); ctx.stroke();
+                }
+                ctx.beginPath(); ctx.arc(500, 500, 40, 0, Math.PI*2); ctx.fillStyle='rgba(92, 45, 10, 0.2)'; ctx.fill(); ctx.stroke();
                 
-                [ Config.baseY_P1, Config.baseY_P2 ].forEach((val) => {
+                // Baselines
+                [ Config.baseY_P1, Config.baseY_P2, 500, 500 ].forEach((val, idx) => {
                     ctx.beginPath();
-                    ctx.moveTo(Config.baseMinX, val-18); ctx.lineTo(Config.baseMaxX, val-18);
-                    ctx.moveTo(Config.baseMinX, val+18); ctx.lineTo(Config.baseMaxX, val+18);
+                    if(idx < 2) { ctx.moveTo(Config.baseMinX, val-18); ctx.lineTo(Config.baseMaxX, val-18); ctx.moveTo(Config.baseMinX, val+18); ctx.lineTo(Config.baseMaxX, val+18); }
+                    else { let x = (idx === 2) ? 200 : 800; ctx.moveTo(x-18, Config.baseMinX); ctx.lineTo(x-18, Config.baseMaxX); ctx.moveTo(x+18, Config.baseMinX); ctx.lineTo(x+18, Config.baseMaxX); }
                     ctx.stroke();
                 });
 
+                // Baseline Badges (Red Circle + White Star)
                 const drawBadge = (x, y) => {
-                    ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI*2); ctx.fillStyle = '#dc2626'; ctx.fill();
-                    ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.stroke();
-                    ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
+                    ctx.beginPath(); ctx.arc(x, y, 22, 0, Math.PI*2); ctx.fillStyle = '#dc2626'; ctx.fill();
+                    ctx.strokeStyle = '#4a2511'; ctx.lineWidth = 1; ctx.stroke();
+                    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
                 };
-                drawBadge(Config.baseMinX, Config.baseY_P1); drawBadge(Config.baseMaxX, Config.baseY_P1);
-                drawBadge(Config.baseMinX, Config.baseY_P2); drawBadge(Config.baseMaxX, Config.baseY_P2);
+                drawBadge(200, 200); drawBadge(800, 200); drawBadge(200, 800); drawBadge(800, 800);
+                drawBadge(500, 200); drawBadge(500, 800); drawBadge(200, 500); drawBadge(800, 500);
 
+                // Draw Coins Function
                 const drawPiece = (c, isStriker = false) => {
+                    // Shadow
                     ctx.beginPath(); ctx.arc(c.x + 4, c.y + 4, c.r, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill(); 
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill(); 
 
                     ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
                     let grad = ctx.createRadialGradient(c.x - c.r*0.3, c.y - c.r*0.3, c.r*0.1, c.x, c.y, c.r);
                     
                     if (isStriker) {
-                        grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.5, '#d1d5db'); grad.addColorStop(1, '#94a3b8');
+                        grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.5, '#e2e8f0'); grad.addColorStop(1, '#94a3b8');
                         ctx.fillStyle = grad; ctx.fill();
                         ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 3; ctx.stroke();
-                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.35, 0, Math.PI * 2); ctx.fillStyle = '#0f172a'; ctx.fill();
+                        // Striker Inner
+                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.6, 0, Math.PI * 2); ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.stroke();
+                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.3, 0, Math.PI * 2); ctx.fillStyle = '#0f172a'; ctx.fill();
                     } else {
                         if (c.type === 'queen') { grad.addColorStop(0, '#fca5a5'); grad.addColorStop(1, '#991b1b'); } 
-                        else if (c.type === 'white') { grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#cbd5e1'); } 
+                        else if (c.type === 'white') { grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#d1d5db'); } 
                         else { grad.addColorStop(0, '#475569'); grad.addColorStop(1, '#0f172a'); }
+                        
                         ctx.fillStyle = grad; ctx.fill();
                         ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 1.5; ctx.stroke();
+                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.65, 0, Math.PI * 2);
+                        ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1.5; ctx.stroke();
                     }
                 };
 
+                // Render all active pieces
                 GameState.coins.forEach(c => { if (c.active) drawPiece(c); });
                 if (GameState.striker && GameState.striker.active) drawPiece(GameState.striker, true);
 
+                // Particles
+                GameState.particles.forEach(p => {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.life * 8, 0, Math.PI * 2);
+                    ctx.fillStyle = p.c; ctx.globalAlpha = p.life; ctx.fill(); ctx.globalAlpha = 1;
+                });
+
+                // Aiming Visuals
                 if (GameState.state === 'AIMING' && GameState.striker) {
                     let dx = InputManager.currX - InputManager.startX; 
                     let dy = InputManager.currY - InputManager.startY;
                     let power = Math.hypot(dx, dy);
 
                     ctx.strokeStyle = power > 150 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(250, 204, 21, 0.8)';
-                    ctx.lineWidth = Math.min(12, 4 + power / 20);
-                    ctx.setLineDash([15, 12]);
+                    ctx.lineWidth = Math.min(14, 4 + power / 20);
+                    ctx.setLineDash([15, 15]);
                     ctx.beginPath(); ctx.moveTo(GameState.striker.x, GameState.striker.y); 
                     ctx.lineTo(GameState.striker.x + dx * 1.5, GameState.striker.y + dy * 1.5); ctx.stroke();
                     ctx.setLineDash([]);
+                    
+                    ctx.beginPath(); ctx.arc(GameState.striker.x, GameState.striker.y, GameState.striker.r + power/2.5, 0, Math.PI*2);
+                    ctx.strokeStyle = `rgba(250, 204, 21, ${Math.min(0.6, power/350)})`; ctx.lineWidth = 4; ctx.stroke();
                 }
                 ctx.restore();
             }
         };
 
+        // --- 8. MAIN APP LOGIC ---
         const GameApp = {
             loop() {
                 PhysicsSystem.update();
@@ -746,26 +922,26 @@
                 document.getElementById('mainMenu').classList.add('hidden');
                 document.getElementById('gameOverMenu').classList.add('hidden');
                 document.getElementById('settingsMenu').classList.add('hidden');
+                
                 document.getElementById('hudTop').classList.add('visible');
                 document.getElementById('hudBottom').classList.add('visible');
                 document.getElementById('boardContainer').classList.add('visible');
                 
                 AudioSystem.init();
                 GameState.initNewMatch();
-                window.parent.postMessage({ sender: 'syncbeat', action: 'GAME_STARTED', tab: 4 }, '*');
             },
             quitMatch() {
                 GameState.state = 'MENU';
                 document.getElementById('mainMenu').classList.remove('hidden');
                 document.getElementById('pauseMenu').classList.add('hidden');
                 document.getElementById('gameOverMenu').classList.add('hidden');
+                
                 document.getElementById('hudTop').classList.remove('visible');
                 document.getElementById('hudBottom').classList.remove('visible');
                 document.getElementById('boardContainer').classList.remove('visible');
-                window.parent.postMessage({ sender: 'syncbeat', action: 'GAME_ENDED' }, '*');
             },
             pauseMatch() {
-                if (GameState.state === 'READY') {
+                if(GameState.state === 'READY') {
                     GameState.state = 'PAUSED';
                     document.getElementById('pauseMenu').classList.remove('hidden');
                 }
@@ -774,27 +950,45 @@
                 GameState.state = 'READY';
                 document.getElementById('pauseMenu').classList.add('hidden');
             },
-            openSettings() { document.getElementById('settingsMenu').classList.remove('hidden'); },
+            openSettings() {
+                document.getElementById('settingsMenu').classList.remove('hidden');
+                document.getElementById('pauseMenu').classList.add('hidden');
+                
+                const locks = document.querySelectorAll('.locked-in-game');
+                if (GameState.state !== 'MENU' && GameState.firstShotTaken) {
+                    document.getElementById('settingsLockWarning').style.display = 'block';
+                    locks.forEach(l => l.disabled = true);
+                } else {
+                    document.getElementById('settingsLockWarning').style.display = 'none';
+                    locks.forEach(l => l.disabled = false);
+                }
+            },
             closeSettings() {
                 document.getElementById('settingsMenu').classList.add('hidden');
+                if(GameState.state === 'PAUSED') document.getElementById('pauseMenu').classList.remove('hidden');
+                
                 Settings.queenReq = document.getElementById('optQueenReq').value === 'true';
+                Settings.queenCover = document.getElementById('optQueenCover').value;
+                Settings.foulPenalty = document.getElementById('optFoulPenalty').value;
             },
             updatePresets() {
                 const preset = document.getElementById('optRuleset').value;
-                document.getElementById('optQueenReq').value = preset === 'standard' ? 'true' : 'false';
+                const req = document.getElementById('optQueenReq');
+                const cov = document.getElementById('optQueenCover');
+                const foul = document.getElementById('optFoulPenalty');
+
+                if (preset === 'standard') { req.value = 'true'; cov.value = 'strict'; foul.value = 'return_coin'; }
+                else if (preset === 'casual') { req.value = 'false'; cov.value = 'none'; foul.value = 'lose_turn'; }
+                else if (preset === 'strict') { req.value = 'true'; cov.value = 'strict'; foul.value = 'return_coin'; }
             },
-            openRules() { document.getElementById('rulesMenu').classList.remove('hidden'); },
+            openRules() {
+                document.getElementById('rulesMenu').classList.remove('hidden');
+            },
             init() {
                 InputManager.init();
                 this.loop();
             }
         };
-
-        window.addEventListener('message', (e) => {
-            if (e.data.type === 'AUTH' && e.data.profile) {
-                document.getElementById('p1Name').innerText = e.data.profile.name;
-            }
-        });
 
         window.onload = () => GameApp.init();
     </script>
