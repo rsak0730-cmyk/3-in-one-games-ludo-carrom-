@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Carrom Pool Pro - Authentic Board</title>
+    <title>Carrom Pool Pro - Authentic Rules & Textures</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -25,7 +25,6 @@
             justify-content: space-between; align-items: center; padding: 15px 0; 
         }
 
-        /* Overlays (Menus) */
         .overlay { 
             position: fixed; inset: 0; background: rgba(10, 2, 15, 0.95); backdrop-filter: blur(8px); 
             z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; 
@@ -49,19 +48,15 @@
         }
         .btn-main:active { transform: scale(0.95); }
         .btn-main.secondary { background: linear-gradient(to bottom, #60a5fa 0%, #1d4ed8 100%); color: #fff; border-color: #bfdbfe; }
-        .btn-main.danger { background: linear-gradient(to bottom, #f87171 0%, #b91c1c 100%); color: #fff; border-color: #fca5a5; }
 
-        /* Settings Form */
         .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; text-align: left; }
         .setting-label { font-size: 14px; font-weight: 700; color: #e9d5ff; }
         .setting-select { padding: 8px; border-radius: 8px; border: 1px solid var(--gold-trim); background: #1e0524; color: #fff; font-weight: bold; outline: none; }
         .settings-warning { color: #fca5a5; font-size: 12px; margin-bottom: 15px; font-weight: bold; }
 
-        /* Rules Text */
         .rules-text { text-align: left; font-size: 13px; line-height: 1.5; color: #e9d5ff; margin-bottom: 20px; }
         .rules-text h3 { color: var(--gold-trim); margin-top: 10px; margin-bottom: 5px; }
 
-        /* HUD - Top */
         .hud-top { 
             width: 100%; max-width: 480px; display: flex; justify-content: space-between; align-items: flex-start; 
             padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.5s; 
@@ -81,14 +76,13 @@
         .player-hud.right .score { justify-content: flex-end; }
         
         .coin-icon { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.5); }
-        .coin-icon.white { background: radial-gradient(circle at 30% 30%, #fff, #d1d5db); }
-        .coin-icon.black { background: radial-gradient(circle at 30% 30%, #64748b, #0f172a); }
+        .coin-icon.white { background: #f8fafc; border: 1px solid #94a3b8; }
+        .coin-icon.black { background: #1e293b; border: 1px solid #0f172a; }
 
         .center-hud { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .turn-indicator { background: rgba(0,0,0,0.6); border: 1px solid var(--gold-trim); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; color: var(--gold-trim); margin-bottom: 5px; }
         .queen-status { font-size: 10px; font-weight: bold; background: rgba(220, 38, 38, 0.2); border: 1px solid #ef4444; padding: 2px 8px; border-radius: 8px; color: #fca5a5; }
 
-        /* Canvas Game Board */
         .board-container { 
             position: relative; width: 95vw; height: 95vw; max-width: 450px; max-height: 450px; 
             display: flex; align-items: center; justify-content: center; 
@@ -98,7 +92,6 @@
         .board-container.visible { opacity: 1; transform: scale(1); }
         canvas { width: 100%; height: 100%; border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); cursor: crosshair; touch-action: none; }
 
-        /* HUD - Bottom */
         .hud-bottom { 
             width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; 
             gap: 20px; padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.5s; 
@@ -132,7 +125,6 @@
         }
         .btn-icon:active { transform: scale(0.9); }
 
-        /* Toasts */
         #toast { 
             position: fixed; top: 120px; left: 50%; transform: translateX(-50%) translateY(-20px); 
             background: rgba(55, 11, 59, 0.95); border: 2px solid var(--gold-trim); color: var(--btn-grad-1); 
@@ -147,7 +139,7 @@
     <!-- Main Menu -->
     <div class="overlay" id="mainMenu">
         <div class="menu-card">
-            <div class="menu-title">Carrom Pro</div>
+            <div class="menu-title">Carrom Pool Pro</div>
             <button class="btn-main" onclick="GameApp.startMatch('local')">Play Local 2-Player</button>
             <button class="btn-main secondary" onclick="GameApp.openSettings()">Rules & Settings</button>
             <button class="btn-main secondary" onclick="GameApp.openRules()">How to Play</button>
@@ -342,7 +334,7 @@
             coinRadius: 26,
             strikerRadius: 36,
             pocketRadius: 55,
-            pocketOffset: 70, // Shifted outwards to nestle into the corner
+            pocketOffset: 65,
             innerBoardStart: 60,
             innerBoardSize: 880,
             baseY_P1: 800,
@@ -412,6 +404,7 @@
             pocketedThisTurn: [],
             cameraShake: 0,
             firstShotTaken: false,
+            strikerFoul: false,
 
             initNewMatch() {
                 this.state = 'READY';
@@ -421,6 +414,7 @@
                 this.queenStatus = 'ON_BOARD';
                 this.queenPocketedBy = null;
                 this.pocketedThisTurn = [];
+                this.strikerFoul = false;
                 
                 this.coins = [{ id: 'queen', c: '#dc2626', x: 500, y: 500, r: Config.coinRadius, vx: 0, vy: 0, mass: 1, active: true, type: 'queen' }];
                 for (let i = 0; i < 12; i++) {
@@ -460,36 +454,49 @@
             processTurnResolution() {
                 this.state = 'RESOLVING';
                 let keepTurn = false;
-                let strikerFoul = !this.striker.active;
                 let myColor = this.turn === 1 ? Settings.p1Color : Settings.p2Color;
                 let oppColor = this.turn === 1 ? Settings.p2Color : Settings.p1Color;
                 let pocketedOwn = false;
 
-                if (strikerFoul) {
+                if (this.strikerFoul) {
                     UIManager.showToast("Foul! Striker Pocketed.");
-                    this.pocketedThisTurn.forEach(pc => { pc.active = true; pc.x = 500; pc.y = 500; });
+                    
+                    // Return coins pocketed during the foul shot
+                    this.pocketedThisTurn.forEach(pc => { 
+                        pc.active = true; pc.x = 500 + (Math.random()-0.5)*20; pc.y = 500 + (Math.random()-0.5)*20; 
+                    });
+                    
+                    // Apply Foul Penalty
                     if (Settings.foulPenalty === 'return_coin') {
                         let score = this.turn === 1 ? this.p1Score : this.p2Score;
                         if (score > 0) {
                             let penaltyCoin = this.coins.find(c => !c.active && c.type === myColor);
-                            if (penaltyCoin) { penaltyCoin.active = true; penaltyCoin.x = 500; penaltyCoin.y = 500; }
+                            if (penaltyCoin) { penaltyCoin.active = true; penaltyCoin.x = 500 + (Math.random()-0.5)*20; penaltyCoin.y = 500 + (Math.random()-0.5)*20; }
                             if (this.turn === 1) this.p1Score--; else this.p2Score--;
                         }
                     }
+                    keepTurn = false; // You always lose your turn on a foul
+                    this.strikerFoul = false;
                 } else {
                     this.pocketedThisTurn.forEach(pc => {
                         if (pc.type === myColor) {
                             if (this.turn === 1) this.p1Score++; else this.p2Score++;
-                            pocketedOwn = true; keepTurn = true;
+                            pocketedOwn = true;
                         } else if (pc.type === oppColor) {
                             if (this.turn === 1) this.p2Score++; else this.p1Score++;
                         } else if (pc.type === 'queen') {
                             this.queenStatus = 'PENDING_COVER';
                             this.queenPocketedBy = this.turn;
                             UIManager.showToast("Queen Pocketed! Must cover.");
-                            keepTurn = true;
+                            pocketedOwn = true; // Pocketing queen grants continuation
                         }
                     });
+
+                    // Extra Turn Logic
+                    if (pocketedOwn) {
+                        keepTurn = true;
+                        UIManager.showToast("Extra Turn!", 1500);
+                    }
 
                     if (this.queenStatus === 'PENDING_COVER' && this.queenPocketedBy === this.turn) {
                         if (pocketedOwn) {
@@ -514,7 +521,7 @@
                 this.pocketedThisTurn = [];
                 this.resetStriker();
                 
-                if (!keepTurn || strikerFoul) {
+                if (!keepTurn) {
                     this.turn = this.turn === 1 ? 2 : 1;
                     if (this.queenStatus === 'PENDING_COVER') {
                         let q = this.coins.find(c => c.type === 'queen');
@@ -614,6 +621,13 @@
 
         const PhysicsSystem = {
             checkCollisions() {
+                const POCKETS = [
+                    [Config.pocketOffset, Config.pocketOffset], 
+                    [Config.boardSize-Config.pocketOffset, Config.pocketOffset], 
+                    [Config.pocketOffset, Config.boardSize-Config.pocketOffset], 
+                    [Config.boardSize-Config.pocketOffset, Config.boardSize-Config.pocketOffset]
+                ];
+
                 let entities = [GameState.striker, ...GameState.coins];
                 
                 entities.forEach(e => {
@@ -622,10 +636,33 @@
                         e.vx *= Config.friction; e.vy *= Config.friction;
                         e.x += e.vx; e.y += e.vy;
                         
-                        let min_bound = Config.innerBoardStart + e.r;
-                        let max_bound = Config.innerBoardStart + Config.innerBoardSize - e.r;
-                        if (e.x < min_bound || e.x > max_bound) { e.vx *= -Config.wallRestitution; e.x = Math.max(min_bound, Math.min(max_bound, e.x)); AudioSystem.play('hit', Math.abs(e.vx)); }
-                        if (e.y < min_bound || e.y > max_bound) { e.vy *= -Config.wallRestitution; e.y = Math.max(min_bound, Math.min(max_bound, e.y)); AudioSystem.play('hit', Math.abs(e.vy)); }
+                        // Pocket Entry detection logic (allows coin to fall into hole BEFORE wall bounce)
+                        let inPocketZone = false;
+                        for (let p of POCKETS) {
+                            if (Math.hypot(e.x - p[0], e.y - p[1]) < Config.pocketRadius) {
+                                e.active = false; e.vx = 0; e.vy = 0;
+                                AudioSystem.play('pocket');
+                                PhysicsSystem.spawnParticles(p[0], p[1], e.type || 'striker');
+                                if (e.id === 'striker') GameState.strikerFoul = true;
+                                else GameState.pocketedThisTurn.push(e);
+                                inPocketZone = true; break;
+                            } else if (Math.hypot(e.x - p[0], e.y - p[1]) < Config.pocketRadius + e.r) {
+                                inPocketZone = true; // Passing over the pocket lip, disable wall bounce
+                                break;
+                            }
+                        }
+
+                        if (!inPocketZone) {
+                            let min_bound = Config.innerBoardStart + e.r;
+                            let max_bound = Config.innerBoardStart + Config.innerBoardSize - e.r;
+                            if (e.x < min_bound || e.x > max_bound) { e.vx *= -Config.wallRestitution; e.x = Math.max(min_bound, Math.min(max_bound, e.x)); AudioSystem.play('hit', Math.abs(e.vx)); }
+                            if (e.y < min_bound || e.y > max_bound) { e.vy *= -Config.wallRestitution; e.y = Math.max(min_bound, Math.min(max_bound, e.y)); AudioSystem.play('hit', Math.abs(e.vy)); }
+                        } else {
+                            // Absolute outer bound clamping to prevent escaping physics
+                            if (e.x < e.r || e.x > Config.boardSize - e.r) e.vx *= -0.5;
+                            if (e.y < e.r || e.y > Config.boardSize - e.r) e.vy *= -0.5;
+                        }
+
                     } else {
                         e.vx = 0; e.vy = 0;
                     }
@@ -657,31 +694,27 @@
                         }
                     }
                 }
+            },
 
-                const pockets = [
-                    [Config.pocketOffset, Config.pocketOffset], 
-                    [Config.boardSize-Config.pocketOffset, Config.pocketOffset], 
-                    [Config.pocketOffset, Config.boardSize-Config.pocketOffset], 
-                    [Config.boardSize-Config.pocketOffset, Config.boardSize-Config.pocketOffset]
-                ];
-
-                entities.forEach(e => {
-                    if (!e.active) return;
-                    pockets.forEach(p => {
-                        if (Math.hypot(e.x - p[0], e.y - p[1]) < Config.pocketRadius) {
-                            e.active = false; e.vx = 0; e.vy = 0;
-                            AudioSystem.play('pocket');
-                            if (e.id !== 'striker') GameState.pocketedThisTurn.push(e);
-                        }
-                    });
-                });
+            spawnParticles(x, y, type) {
+                let color = type === 'white' ? '#fff' : type === 'queen' ? '#ef4444' : '#64748b';
+                for(let i=0; i<10; i++) {
+                    GameState.particles.push({ x: x, y: y, vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15, life: 1, c: color });
+                }
             },
 
             update() {
                 if (GameState.state === 'SHOOTING') {
                     this.checkCollisions();
+                    for (let i = GameState.particles.length - 1; i >= 0; i--) {
+                        let p = GameState.particles[i];
+                        p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+                        if (p.life <= 0) GameState.particles.splice(i, 1);
+                    }
+
                     if (GameState.cameraShake > 0) GameState.cameraShake *= 0.9;
                     if (GameState.cameraShake < 0.5) GameState.cameraShake = 0;
+
                     if (!GameState.isMoving()) GameState.processTurnResolution();
                 }
             }
@@ -698,11 +731,11 @@
                     ctx.translate((Math.random()-0.5)*GameState.cameraShake, (Math.random()-0.5)*GameState.cameraShake);
                 }
 
-                // 1. Dark Wood Outer Frame
+                // 1. Dark Wood Frame Background
                 ctx.fillStyle = '#4a2511';
                 ctx.beginPath(); ctx.roundRect(0, 0, Config.boardSize, Config.boardSize, 40); ctx.fill();
                 
-                // 2. Gold Corner Trims
+                // 2. Gold Corner Overlays
                 ctx.fillStyle = '#facc15';
                 let cr = 40; let cw = 110;
                 ctx.beginPath(); ctx.moveTo(0, cw); ctx.arcTo(0,0,cw,0,cr); ctx.lineTo(cw,0); ctx.lineTo(cw, cw); ctx.closePath(); ctx.fill(); 
@@ -710,14 +743,19 @@
                 ctx.beginPath(); ctx.moveTo(Config.boardSize, Config.boardSize-cw); ctx.arcTo(Config.boardSize,Config.boardSize,Config.boardSize-cw,Config.boardSize,cr); ctx.lineTo(Config.boardSize-cw,Config.boardSize); ctx.lineTo(Config.boardSize-cw, Config.boardSize-cw); ctx.closePath(); ctx.fill(); 
                 ctx.beginPath(); ctx.moveTo(cw, Config.boardSize); ctx.arcTo(0,Config.boardSize,0,Config.boardSize-cw,cr); ctx.lineTo(0,Config.boardSize-cw); ctx.lineTo(cw, Config.boardSize-cw); ctx.closePath(); ctx.fill(); 
 
-                // 3. Inner Wood Surface
-                let bgGrad = ctx.createRadialGradient(500, 500, 100, 500, 500, 800);
-                bgGrad.addColorStop(0, '#e6c29a'); 
-                bgGrad.addColorStop(1, '#c49a6c'); 
-                ctx.fillStyle = bgGrad;
+                // 3. Inner Wood Board Area
+                ctx.fillStyle = '#dcb589';
                 ctx.beginPath(); ctx.roundRect(Config.innerBoardStart, Config.innerBoardStart, Config.innerBoardSize, Config.innerBoardSize, 20); ctx.fill();
 
-                // 4. Markings & Lines
+                // 4. Black Pocket Cutouts (Drawn precisely over corners & inner board edges)
+                const pockets = [[Config.pocketOffset, Config.pocketOffset], [Config.boardSize-Config.pocketOffset, Config.pocketOffset], [Config.pocketOffset, Config.boardSize-Config.pocketOffset], [Config.boardSize-Config.pocketOffset, Config.boardSize-Config.pocketOffset]];
+                ctx.fillStyle = '#0a0a0a';
+                pockets.forEach(p => {
+                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3; ctx.stroke();
+                });
+
+                // 5. Decorative Markings & Lines
                 ctx.strokeStyle = 'rgba(139, 69, 19, 0.4)'; 
                 ctx.lineWidth = 2;
                 ctx.strokeRect(Config.innerBoardStart+20, Config.innerBoardStart+20, Config.innerBoardSize-40, Config.innerBoardSize-40);
@@ -727,8 +765,8 @@
                     ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
                     ctx.beginPath(); ctx.arc(x1, y1, 10, 0, Math.PI*2); ctx.fillStyle='rgba(139,69,19,0.3)'; ctx.fill(); ctx.stroke();
                 };
-                drawArrow(250, 250, 150, 150); drawArrow(750, 250, 850, 150);
-                drawArrow(250, 750, 150, 850); drawArrow(750, 750, 850, 850);
+                drawArrow(250, 250, 160, 160); drawArrow(750, 250, 840, 160);
+                drawArrow(250, 750, 160, 840); drawArrow(750, 750, 840, 840);
 
                 ctx.beginPath(); ctx.arc(500, 500, 160, 0, Math.PI*2); ctx.stroke();
                 ctx.beginPath(); ctx.arc(500, 500, 40, 0, Math.PI*2); ctx.fillStyle='rgba(139, 69, 19, 0.2)'; ctx.fill(); ctx.stroke();
@@ -748,60 +786,51 @@
                 drawBadge(Config.baseMinX, Config.baseY_P1); drawBadge(Config.baseMaxX, Config.baseY_P1);
                 drawBadge(Config.baseMinX, Config.baseY_P2); drawBadge(Config.baseMaxX, Config.baseY_P2);
 
-                // 5. OVERLAY POCKETS (Ensures black holes cut over the lines/corners exactly like real board)
-                const pockets = [
-                    [Config.pocketOffset, Config.pocketOffset], 
-                    [Config.boardSize-Config.pocketOffset, Config.pocketOffset], 
-                    [Config.pocketOffset, Config.boardSize-Config.pocketOffset], 
-                    [Config.boardSize-Config.pocketOffset, Config.boardSize-Config.pocketOffset]
-                ];
-                pockets.forEach(p => {
-                    // Outer gold rim
-                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius + 3, 0, Math.PI*2);
-                    ctx.fillStyle = '#ca8a04'; ctx.fill();
-                    // Inner pure black hole
-                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius, 0, Math.PI*2);
-                    ctx.fillStyle = '#0a0a0a'; ctx.fill();
-                    // Inner shadow 
-                    ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 4; ctx.stroke();
-                });
-
-                // 6. DRAW FLAT 2D RING PIECES
+                // 6. Draw 2D Flat Coins & Striker
                 const drawPiece = (c, isStriker = false) => {
-                    // Shadow
+                    // Soft Drop Shadow
                     ctx.beginPath(); ctx.arc(c.x + 3, c.y + 3, c.r, 0, Math.PI * 2);
                     ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill(); 
 
                     if (isStriker) {
                         ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-                        ctx.fillStyle = '#fef3c7'; ctx.fill();
-                        ctx.strokeStyle = '#b45309'; ctx.lineWidth = 4; ctx.stroke();
+                        ctx.fillStyle = '#fef08a'; ctx.fill();
+                        ctx.strokeStyle = '#3e200c'; ctx.lineWidth = 2; ctx.stroke();
                         
-                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.7, 0, Math.PI * 2);
+                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.75, 0, Math.PI * 2);
                         ctx.strokeStyle = '#b91c1c'; ctx.lineWidth = 3; ctx.stroke();
+
+                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.45, 0, Math.PI * 2);
+                        ctx.fillStyle = '#0f172a'; ctx.fill();
                         
-                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.4, 0, Math.PI * 2);
-                        ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.stroke();
-                        
-                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.15, 0, Math.PI * 2);
+                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.18, 0, Math.PI * 2);
                         ctx.fillStyle = '#b91c1c'; ctx.fill();
                     } else {
                         let baseColor, rimColor, engraveColor;
                         if (c.type === 'queen') { baseColor = '#ef4444'; rimColor = '#7f1d1d'; engraveColor = '#b91c1c'; } 
-                        else if (c.type === 'white') { baseColor = '#f8fafc'; rimColor = '#94a3b8'; engraveColor = '#cbd5e1'; } 
+                        else if (c.type === 'white') { baseColor = '#f8fafc'; rimColor = '#94a3b8'; engraveColor = '#e2e8f0'; } 
                         else { baseColor = '#1e293b'; rimColor = '#020617'; engraveColor = '#0f172a'; }
                         
                         ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
                         ctx.fillStyle = baseColor; ctx.fill();
-                        ctx.strokeStyle = rimColor; ctx.lineWidth = 3; ctx.stroke();
+                        ctx.strokeStyle = rimColor; ctx.lineWidth = 2; ctx.stroke();
                         
-                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.55, 0, Math.PI * 2);
+                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.65, 0, Math.PI * 2);
                         ctx.strokeStyle = engraveColor; ctx.lineWidth = 2; ctx.stroke();
+
+                        ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.3, 0, Math.PI * 2);
+                        ctx.fillStyle = engraveColor; ctx.fill();
                     }
                 };
 
                 GameState.coins.forEach(c => { if (c.active) drawPiece(c); });
                 if (GameState.striker && GameState.striker.active) drawPiece(GameState.striker, true);
+
+                // Particles
+                GameState.particles.forEach(p => {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.life * 8, 0, Math.PI * 2);
+                    ctx.fillStyle = p.c; ctx.globalAlpha = p.life; ctx.fill(); ctx.globalAlpha = 1;
+                });
 
                 // Aiming Visuals
                 if (GameState.state === 'AIMING' && GameState.striker) {
@@ -815,6 +844,9 @@
                     ctx.beginPath(); ctx.moveTo(GameState.striker.x, GameState.striker.y); 
                     ctx.lineTo(GameState.striker.x + dx * 1.5, GameState.striker.y + dy * 1.5); ctx.stroke();
                     ctx.setLineDash([]);
+                    
+                    ctx.beginPath(); ctx.arc(GameState.striker.x, GameState.striker.y, GameState.striker.r + power/2.5, 0, Math.PI*2);
+                    ctx.strokeStyle = `rgba(250, 204, 21, ${Math.min(0.6, power/350)})`; ctx.lineWidth = 5; ctx.stroke();
                 }
                 ctx.restore();
             }
