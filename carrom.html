@@ -3,142 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SyncBeat Carrom Pro - Local 2-Player</title>
+    <title>Carrom King Pro - Local</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body, html { width: 100vw; height: 100vh; background: radial-gradient(circle, #581c87 0%, #3b0764 100%, #1e1b4b 100%); color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 8px 0; }
+        body, html { width: 100vw; height: 100vh; background: radial-gradient(circle at center, #701a75 0%, #4c1d95 50%, #0f172a 100%); color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 10px 0; }
 
-        /* Top HUD / Player Cards */
-        .hud-top { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; padding: 0 14px; z-index: 10; }
-        .match-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #c4b5fd; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 10px; text-align: center; width: 100%; max-width: 420px; margin-bottom: 2px; border: 1px solid rgba(255,255,255,0.08); }
+        /* UI Overlays */
+        .overlay { position: fixed; inset: 0; background: rgba(10, 5, 20, 0.95); backdrop-filter: blur(10px); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.3s; }
+        .overlay.hidden { opacity: 0; pointer-events: none; }
         
-        .player-card { display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.6); padding: 5px 10px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.12); min-width: 125px; transition: all 0.3s ease; }
-        .player-card.active-turn { border-color: #facc15; box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); background: rgba(250, 204, 21, 0.15); }
+        .menu-card { background: #2e1065; width: 100%; max-width: 320px; border-radius: 24px; padding: 24px; border: 2px solid #facc15; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
+        .menu-title { font-size: 24px; font-weight: 900; color: #facc15; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 4px 10px rgba(250, 204, 21, 0.4); }
+        .btn-glass { width: 100%; padding: 16px; border-radius: 14px; font-size: 14px; font-weight: 900; cursor: pointer; border: none; margin-bottom: 12px; text-transform: uppercase; color: #000; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 1px solid #fef08a; transition: transform 0.1s; }
+        .btn-glass:active { transform: scale(0.96); }
+        .btn-glass.secondary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #fff; border-color: #93c5fd; }
+
+        /* Top HUD */
+        .hud-top { width: 100%; max-width: 450px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; z-index: 10; opacity: 0; transition: opacity 0.5s; }
+        .hud-top.visible { opacity: 1; }
         
-        .avatar-wrap { position: relative; width: 34px; height: 34px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; border: 2px solid #facc15; }
-        .avatar-wrap i { font-size: 14px; color: #f8fafc; }
-        .level-badge { position: absolute; bottom: -3px; right: -3px; background: #ca8a04; color: #000; font-size: 8px; font-weight: 900; padding: 1px 3px; border-radius: 6px; border: 1px solid #fff; }
+        .player-card { display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.7); padding: 6px 12px; border-radius: 24px; border: 2px solid rgba(255,255,255,0.1); min-width: 130px; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+        .player-card.active-turn { border-color: #facc15; background: rgba(250, 204, 21, 0.2); box-shadow: 0 0 20px rgba(250, 204, 21, 0.3); transform: scale(1.05); }
+        
+        .avatar-wrap { position: relative; width: 36px; height: 36px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+        .avatar-wrap img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .level-badge { position: absolute; bottom: -4px; right: -4px; background: #ca8a04; color: #000; font-size: 9px; font-weight: 900; padding: 2px 4px; border-radius: 6px; border: 1px solid #fff; }
 
         .player-info { display: flex; flex-direction: column; }
-        .player-name { font-size: 11px; font-weight: 900; color: #f3f4f6; }
-        .player-score { font-size: 10px; color: #facc15; font-weight: 800; display: flex; align-items: center; gap: 3px; }
+        .player-name { font-size: 12px; font-weight: 900; color: #f3f4f6; }
+        .player-score { font-size: 11px; color: #cbd5e1; font-weight: 800; display: flex; align-items: center; gap: 4px; }
+        .coin-icon { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); }
+        .coin-icon.white { background: #fdfbf7; }
+        .coin-icon.black { background: #1e293b; }
         
-        .turn-banner { background: rgba(0,0,0,0.4); border: 1px solid rgba(250, 204, 21, 0.3); padding: 4px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; color: #facc15; text-align: center; }
+        .turn-banner { background: rgba(0,0,0,0.5); border: 1px solid rgba(250, 204, 21, 0.4); padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #facc15; text-align: center; backdrop-filter: blur(5px); }
 
-        /* Board Container */
-        .board-container { position: relative; width: 90vw; height: 90vw; max-width: 360px; max-height: 360px; display: flex; align-items: center; justify-content: center; }
-        canvas { background: #deb887; border: 16px solid #451a03; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.3); width: 100%; height: 100%; }
+        /* Canvas Container */
+        .board-container { position: relative; width: 94vw; height: 94vw; max-width: 400px; max-height: 400px; display: flex; align-items: center; justify-content: center; perspective: 1000px; opacity: 0; transform: scale(0.9); transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+        .board-container.visible { opacity: 1; transform: scale(1); }
+        canvas { border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.9); width: 100%; height: 100%; }
 
-        /* Bottom Controls / Star Badge Slider */
-        .hud-bottom { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 16px; z-index: 10; }
-        .striker-control-bar { width: 85%; max-width: 300px; height: 36px; background: rgba(0,0,0,0.5); border-radius: 18px; border: 1px solid rgba(255,255,255,0.15); position: relative; display: flex; align-items: center; padding: 0 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6); }
+        /* Bottom HUD & Slider */
+        .hud-bottom { width: 100%; max-width: 450px; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0 16px; z-index: 10; opacity: 0; transition: opacity 0.5s; }
+        .hud-bottom.visible { opacity: 1; }
         
-        /* Star Badge Slider Knob */
-        .control-knob { position: absolute; width: 30px; height: 30px; background: radial-gradient(circle, #ef4444 0%, #b91c1c 100%); border-radius: 50%; top: 3px; left: calc(50% - 15px); cursor: pointer; border: 2px solid #facc15; box-shadow: 0 2px 6px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #facc15; font-size: 12px; }
+        .slider-container { width: 85%; max-width: 320px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .striker-track { width: 100%; height: 8px; background: rgba(0,0,0,0.6); border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); }
+        .control-knob { position: absolute; width: 36px; height: 36px; background: #dc2626; border-radius: 50%; top: -14px; left: calc(50% - 18px); cursor: pointer; border: 3px solid #eab308; box-shadow: 0 4px 10px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }
+        .control-knob::after { content: '\f005'; font-family: "Font Awesome 6 Free"; font-weight: 900; color: #fff; font-size: 14px; }
 
-        .action-buttons { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
-        .btn-icon { width: 40px; height: 40px; background: radial-gradient(circle, #facc15 0%, #ca8a04 100%); border: none; border-radius: 50%; color: #000; font-size: 16px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fef08a; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-        .btn-icon:active { transform: scale(0.92); }
+        .action-buttons { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; }
+        .btn-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); border: none; border-radius: 50%; color: #000; font-size: 16px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fef08a; box-shadow: 0 6px 15px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .btn-icon:active { transform: scale(0.9); }
 
-        /* Toast Popup */
-        #toast { position: fixed; top: 75px; left: 50%; transform: translateX(-50%) translateY(-30px); background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(250, 204, 21, 0.5); color: #fef08a; padding: 8px 16px; border-radius: 16px; font-size: 11px; font-weight: 800; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+        /* Toast & Modals */
+        #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(250, 204, 21, 0.6); color: #fef08a; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 800; z-index: 1000; opacity: 0; transition: all 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: none; }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* Win Modal */
-        #winModal { position: fixed; inset: 0; background: rgba(10, 5, 20, 0.9); backdrop-filter: blur(10px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .win-card { background: #2e1065; width: 100%; max-width: 320px; border-radius: 24px; padding: 24px; border: 2px solid #facc15; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
-        .btn-restart { width: 100%; padding: 14px; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; border: none; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); color: #000; text-transform: uppercase; margin-top: 15px; border: 1px solid #fef08a; }
     </style>
 </head>
 <body>
 
-    <div id="toast">Foul: Striker pocketed!</div>
-
-    <div class="hud-top">
-        <div class="match-badge">Local Match · First to clear wins</div>
+    <!-- Main Menu Overlay -->
+    <div class="overlay" id="mainMenu">
+        <div class="menu-card">
+            <div class="menu-title">Carrom Pro</div>
+            <button class="btn-glass" onclick="startGame()">Two Player Local</button>
+            <button class="btn-glass secondary" onclick="alert('Local Practice Mode. Enjoy!') || startGame()">Practice Mode</button>
+            <button class="btn-glass secondary" onclick="alert('Drag the striker baseline slider to position.\nDrag backward from striker to shoot.\nPocket 9 coins of your color to win.\nQueen must be covered by another coin.')">How to Play</button>
+        </div>
     </div>
 
-    <div class="hud-top">
+    <!-- Game Over Overlay -->
+    <div class="overlay hidden" id="gameOverMenu">
+        <div class="menu-card">
+            <i class="fa-solid fa-trophy" style="font-size: 54px; color: #facc15; margin-bottom: 15px;"></i>
+            <h2 id="winTitle" style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 10px;">Player 1 Wins!</h2>
+            <p style="font-size: 12px; color: #cbd5e1; margin-bottom: 20px;">All coins successfully pocketed.</p>
+            <button class="btn-glass" onclick="startGame()">Play Again</button>
+            <button class="btn-glass secondary" onclick="quitMatch()">Main Menu</button>
+        </div>
+    </div>
+
+    <div id="toast">Message</div>
+
+    <!-- Top HUD -->
+    <div class="hud-top" id="hudTop">
         <div class="player-card active-turn" id="p1Card">
-            <div class="avatar-wrap">
-                <i class="fa-solid fa-user-ninja"></i>
-                <span class="level-badge">12</span>
-            </div>
+            <div class="avatar-wrap" style="border-color:#f8fafc;"><i class="fa-solid fa-user"></i><span class="level-badge" style="background:#f8fafc;">1</span></div>
             <div class="player-info">
-                <span class="player-name">Player 1</span>
-                <span class="player-score"><i class="fa-solid fa-circle" style="color:#fdfbf7; font-size:8px;"></i> <span id="p1Count">9</span> left</span>
+                <span class="player-name" id="p1Name">Player 1</span>
+                <span class="player-score"><div class="coin-icon white"></div> <span id="p1Count">9</span></span>
             </div>
         </div>
-        <div class="turn-banner" id="turnBanner">P1's Turn</div>
+        <div class="turn-banner" id="turnBanner">P1 Turn</div>
         <div class="player-card" id="p2Card">
-            <div class="avatar-wrap" style="border-color:#3b82f6;">
-                <i class="fa-solid fa-user-astronaut"></i>
-                <span class="level-badge" style="background:#2563eb; color:#fff;">10</span>
-            </div>
+            <div class="avatar-wrap" style="border-color:#1e293b;"><i class="fa-solid fa-user-astronaut"></i><span class="level-badge" style="background:#1e293b; color:#fff;">2</span></div>
             <div class="player-info">
                 <span class="player-name">Player 2</span>
-                <span class="player-score"><i class="fa-solid fa-circle" style="color:#1e293b; font-size:8px;"></i> <span id="p2Count">9</span> left</span>
+                <span class="player-score"><div class="coin-icon black"></div> <span id="p2Count">9</span></span>
             </div>
         </div>
     </div>
 
-    <div class="board-container">
-        <canvas id="carromCanvas" width="400" height="400"></canvas>
+    <!-- Game Canvas -->
+    <div class="board-container" id="boardContainer">
+        <canvas id="carromCanvas" width="1000" height="1000"></canvas>
     </div>
 
-    <div class="hud-bottom">
-        <div class="striker-control-bar" id="sliderBar">
-            <div class="control-knob" id="controlKnob"><i class="fa-solid fa-star" style="font-size:10px;"></i></div>
+    <!-- Bottom HUD -->
+    <div class="hud-bottom" id="hudBottom">
+        <div class="slider-container" id="sliderBar">
+            <div class="striker-track"></div>
+            <div class="control-knob" id="controlKnob"></div>
         </div>
         <div class="action-buttons">
-            <button class="btn-icon" onclick="resetBoard()" title="Restart Match"><i class="fa-solid fa-rotate-right"></i></button>
-            <button class="btn-icon" style="background:radial-gradient(circle, #ef4444 0%, #b91c1c 100%); color:#fff; border-color:#fca5a5;" onclick="quitToHome()" title="Exit Match"><i class="fa-solid fa-power-off"></i></button>
-            <button class="btn-icon" onclick="toggleSound()" id="soundBtn" title="Toggle Sound"><i class="fa-solid fa-volume-high"></i></button>
-        </div>
-    </div>
-
-    <div id="winModal">
-        <div class="win-card">
-            <i class="fa-solid fa-trophy" style="font-size: 48px; color: #facc15; margin-bottom: 12px;"></i>
-            <h2 id="winTitle" style="font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 8px;">Player 1 Wins!</h2>
-            <p id="winDesc" style="font-size: 11px; color: #cbd5e1; margin-bottom: 15px;">All coins successfully pocketed and covered.</p>
-            <button class="btn-restart" onclick="resetBoard()">Play Again</button>
+            <button class="btn-icon" onclick="togglePause()" id="pauseBtn"><i class="fa-solid fa-pause"></i></button>
+            <button class="btn-icon" style="background:radial-gradient(circle, #ef4444 0%, #b91c1c 100%); color:#fff; border-color:#fca5a5;" onclick="quitMatch()"><i class="fa-solid fa-right-from-bracket"></i></button>
+            <button class="btn-icon" onclick="toggleSound()" id="soundBtn"><i class="fa-solid fa-volume-high"></i></button>
         </div>
     </div>
 
     <script>
-        // --- Web Audio API Sound Synthesizer ---
+        // --- Web Audio API (Procedural Sound) ---
         let soundEnabled = true;
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
 
-        function playSound(type) {
-            if (!soundEnabled) return;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
+        }
+
+        function playSound(type, velocity = 1) {
+            if (!soundEnabled || !audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
+            let vol = Math.max(0.05, Math.min(0.5, velocity / 30));
+
             if (type === 'hit') {
-                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.06);
-                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.06);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.06);
-            } else if (type === 'pocket') {
-                osc.frequency.setValueAtTime(320, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.12);
-                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.12);
-            } else if (type === 'shoot') {
-                osc.frequency.setValueAtTime(140, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(300, audioCtx.currentTime + 0.05);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'pocket') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'shoot') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             }
         }
 
@@ -151,61 +178,108 @@
             const t = document.getElementById('toast');
             t.innerText = msg;
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2200);
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        function quitToHome() {
-            window.parent.postMessage({ sender: 'syncbeat', action: 'ROOM_CLOSED' }, '*');
-        }
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'AUTH' && e.data.profile) {
+                document.getElementById('p1Name').innerText = e.data.profile.name;
+            }
+        });
 
-        // --- Game State & Physics Engine ---
+        // --- Core Physics & Game Engine ---
         const cvs = document.getElementById('carromCanvas');
         const ctx = cvs.getContext('2d');
-
-        let coins = [];
-        let striker = { id: 'striker', c: '#fffbeb', x: 200, y: 310, r: 13, vx: 0, vy: 0, mass: 1.8, active: true };
+        const BOARD_SIZE = 1000; 
         
-        let turn = 1; 
+        let coins = [];
+        let particles = [];
+        let striker = { id: 'striker', c: '#fffbeb', x: 500, y: 780, r: 32, vx: 0, vy: 0, mass: 1.8, active: true };
+        
+        let isPlaying = false;
+        let isPaused = false;
+        let turn = 1; // 1: White, 2: Black
         let p1Score = 9;
         let p2Score = 9;
         let queenCoverNeeded = false;
         let shotTaken = false;
         let pocketedThisShot = [];
+        let cameraShake = 0;
 
-        function resetBoard() {
-            document.getElementById('winModal').style.display = 'none';
+        // Constants
+        const POCKET_RADIUS = 48;
+        const POCKETS = [
+            [55, 55], [BOARD_SIZE - 55, 55], 
+            [55, BOARD_SIZE - 55], [BOARD_SIZE - 55, BOARD_SIZE - 55]
+        ];
+        const BASELINE_Y_P1 = 780;
+        const BASELINE_Y_P2 = 220;
+        const BASELINE_MIN_X = 250;
+        const BASELINE_MAX_X = 750;
+        const FRICTION = 0.985;
+        const WALL_RESTITUTION = 0.75;
+
+        function startGame() {
+            initAudio();
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('gameOverMenu').classList.add('hidden');
+            document.getElementById('hudTop').classList.add('visible');
+            document.getElementById('hudBottom').classList.add('visible');
+            document.getElementById('boardContainer').classList.add('visible');
+            
             turn = 1; p1Score = 9; p2Score = 9; queenCoverNeeded = false;
-            updateHUD();
             initPieces();
+            updateHUD();
+            isPlaying = true;
+            isPaused = false;
+            
+            // Notify parent iframe wrapper to lock tabs
+            window.parent.postMessage({ sender: 'syncbeat', action: 'GAME_STARTED', tab: 4 }, '*');
+        }
+
+        function quitMatch() {
+            isPlaying = false;
+            document.getElementById('mainMenu').classList.remove('hidden');
+            document.getElementById('hudTop').classList.remove('visible');
+            document.getElementById('hudBottom').classList.remove('visible');
+            document.getElementById('boardContainer').classList.remove('visible');
+            window.parent.postMessage({ sender: 'syncbeat', action: 'GAME_ENDED' }, '*');
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').innerHTML = isPaused ? '<i class="fa-solid fa-play"></i>' : '<i class="fa-solid fa-pause"></i>';
+            if (isPaused) showToast("Game Paused");
         }
 
         function initPieces() {
-            coins = [{ id: 'queen', c: '#dc2626', x: 200, y: 200, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: 'queen' }];
+            coins = [{ id: 'queen', c: '#dc2626', x: 500, y: 500, r: 22, vx: 0, vy: 0, mass: 1, active: true, type: 'queen' }];
             
-            // Inner Hex Ring (6 coins)
+            // Inner Hex (6)
             for (let i = 0; i < 6; i++) {
                 let angle = i * (Math.PI / 3);
                 let type = i % 2 === 0 ? 'white' : 'black';
                 let color = type === 'white' ? '#fdfbf7' : '#1e293b';
-                coins.push({ id: `inner_${i}`, c: color, x: 200 + Math.cos(angle)*19, y: 200 + Math.sin(angle)*19, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: type });
+                coins.push({ id: `inner_${i}`, c: color, x: 500 + Math.cos(angle)*46, y: 500 + Math.sin(angle)*46, r: 22, vx: 0, vy: 0, mass: 1, active: true, type: type });
             }
 
-            // Outer Hex Ring (12 coins rotated by 15 degrees, 360 full loop)
+            // Outer Hex (12)
             for (let i = 0; i < 12; i++) {
                 let angle = i * (Math.PI / 6) + (Math.PI / 12);
                 let type = i % 2 === 0 ? 'black' : 'white';
                 let color = type === 'white' ? '#fdfbf7' : '#1e293b';
-                coins.push({ id: `outer_${i}`, c: color, x: 200 + Math.cos(angle)*40, y: 200 + Math.sin(angle)*40, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: type });
+                coins.push({ id: `outer_${i}`, c: color, x: 500 + Math.cos(angle)*94, y: 500 + Math.sin(angle)*94, r: 22, vx: 0, vy: 0, mass: 1, active: true, type: type });
             }
+            particles = [];
             resetStriker();
         }
 
         function resetStriker() {
-            striker.x = 200;
-            striker.y = turn === 1 ? 310 : 90;
+            striker.x = 500;
+            striker.y = turn === 1 ? BASELINE_Y_P1 : BASELINE_Y_P2;
             striker.vx = 0; striker.vy = 0;
             striker.active = true;
-            document.getElementById('controlKnob').style.left = 'calc(50% - 15px)';
+            document.getElementById('controlKnob').style.left = 'calc(50% - 18px)';
         }
 
         function updateHUD() {
@@ -218,44 +292,45 @@
             if (turn === 1) {
                 p1Card.classList.add('active-turn');
                 p2Card.classList.remove('active-turn');
-                banner.innerText = "P1's Turn (White)";
+                banner.innerText = "P1 Turn (White)";
             } else {
                 p2Card.classList.add('active-turn');
                 p1Card.classList.remove('active-turn');
-                banner.innerText = "P2's Turn (Black)";
+                banner.innerText = "P2 Turn (Black)";
             }
         }
 
-        // --- Baseline Slider Controls ---
+        // --- Controls (Slider & Aiming) ---
         const sliderBar = document.getElementById('sliderBar');
         const knob = document.getElementById('controlKnob');
         let isSliding = false;
 
-        sliderBar.addEventListener('pointerdown', (e) => { isSliding = true; updateStrikerPos(e); });
+        sliderBar.addEventListener('pointerdown', (e) => { if (!isMoving() && !isPaused) { isSliding = true; updateStrikerPos(e); }});
         window.addEventListener('pointermove', (e) => { if (isSliding) updateStrikerPos(e); });
         window.addEventListener('pointerup', () => isSliding = false);
 
         function updateStrikerPos(e) {
-            if (isMoving()) return;
             const rect = sliderBar.getBoundingClientRect();
             let pos = (e.clientX - rect.left) / rect.width;
-            pos = Math.max(0.1, Math.min(0.9, pos));
-            knob.style.left = `calc(${pos * 100}% - 15px)`;
-            striker.x = 120 + pos * 160;
+            pos = Math.max(0, Math.min(1, pos));
+            knob.style.left = `calc(${pos * 100}% - 18px)`;
+            striker.x = BASELINE_MIN_X + pos * (BASELINE_MAX_X - BASELINE_MIN_X);
         }
 
-        // --- Slingshot Aim & Shoot ---
         let isDragging = false;
         let startX, startY;
         let dragCurrentX, dragCurrentY;
 
         cvs.addEventListener('pointerdown', (e) => {
-            if (isMoving()) return;
+            if (isMoving() || isPaused) return;
             const rect = cvs.getBoundingClientRect();
-            const clickX = (e.clientX - rect.left) * (cvs.width / rect.width);
-            const clickY = (e.clientY - rect.top) * (cvs.height / rect.height);
+            const scaleX = BOARD_SIZE / rect.width;
+            const scaleY = BOARD_SIZE / rect.height;
+            const clickX = (e.clientX - rect.left) * scaleX;
+            const clickY = (e.clientY - rect.top) * scaleY;
             
-            if (Math.hypot(clickX - striker.x, striker.y - clickY) < 30) {
+            if (Math.hypot(clickX - striker.x, clickY - striker.y) < striker.r * 2) {
+                initAudio();
                 isDragging = true;
                 startX = clickX; startY = clickY;
                 dragCurrentX = clickX; dragCurrentY = clickY;
@@ -265,8 +340,8 @@
         cvs.addEventListener('pointermove', (e) => {
             if (!isDragging) return;
             const rect = cvs.getBoundingClientRect();
-            dragCurrentX = (e.clientX - rect.left) * (cvs.width / rect.width);
-            dragCurrentY = (e.clientY - rect.top) * (cvs.height / rect.height);
+            dragCurrentX = (e.clientX - rect.left) * (BOARD_SIZE / rect.width);
+            dragCurrentY = (e.clientY - rect.top) * (BOARD_SIZE / rect.height);
         });
 
         cvs.addEventListener('pointerup', () => {
@@ -276,26 +351,39 @@
             let dx = dragCurrentX - startX;
             let dy = dragCurrentY - startY;
             let power = Math.hypot(dx, dy);
-            if (power > 5) {
-                let maxPower = 120;
+            
+            if (power > 10) {
+                let maxPower = 350;
                 let scale = Math.min(power, maxPower) / maxPower;
-                striker.vx = (-dx / power) * scale * 18;
-                striker.vy = (-dy / power) * scale * 18;
+                // Shoot opposite to drag
+                striker.vx = (-dx / power) * scale * 45;
+                striker.vy = (-dy / power) * scale * 45;
                 shotTaken = true;
                 pocketedThisShot = [];
                 playSound('shoot');
+                if (scale > 0.8) cameraShake = 10;
             }
         });
 
         function isMoving() {
-            if (Math.abs(striker.vx) > 0.02 || Math.abs(striker.vy) > 0.02) return true;
+            if (Math.abs(striker.vx) > 0.1 || Math.abs(striker.vy) > 0.1) return true;
             for (let c of coins) {
-                if (c.active && (Math.abs(c.vx) > 0.02 || Math.abs(c.vy) > 0.02)) return true;
+                if (c.active && (Math.abs(c.vx) > 0.1 || Math.abs(c.vy) > 0.1)) return true;
             }
             return false;
         }
 
-        // --- Physics & Collisions ---
+        // --- Physics Engine ---
+        function spawnParticles(x, y, color) {
+            for(let i=0; i<5; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+                    life: 1, color: color
+                });
+            }
+        }
+
         function resolveCollision(a, b) {
             if (!a.active || !b.active) return;
             let dx = b.x - a.x; let dy = b.y - a.y; let dist = Math.hypot(dx, dy);
@@ -304,60 +392,75 @@
                 let nx = dx / dist, ny = dy / dist;
                 a.x -= nx * overlap; a.y -= ny * overlap;
                 b.x += nx * overlap; b.y += ny * overlap;
+                
                 let kx = b.vx - a.vx; let ky = b.vy - a.vy;
                 let p = 2 * (nx * kx + ny * ky) / (a.mass + b.mass);
                 a.vx += p * b.mass * nx; a.vy += p * b.mass * ny;
                 b.vx -= p * a.mass * nx; b.vy -= p * a.mass * ny;
-                playSound('hit');
+                
+                let impact = Math.abs(p);
+                if (impact > 5) playSound('hit', impact);
             }
         }
 
-        const pockets = [[22,22], [378,22], [22,378], [378,378]];
-
         function updatePhysics() {
-            if (Math.abs(striker.vx) > 0.01 || Math.abs(striker.vy) > 0.01) {
-                striker.vx *= 0.982; striker.vy *= 0.982;
+            if (!isPlaying || isPaused) return;
+
+            // Striker physics
+            if (striker.active && (Math.abs(striker.vx) > 0.05 || Math.abs(striker.vy) > 0.05)) {
+                striker.vx *= FRICTION; striker.vy *= FRICTION;
                 striker.x += striker.vx; striker.y += striker.vy;
-                if (striker.x < striker.r + 6 || striker.x > cvs.width - striker.r - 6) { striker.vx *= -0.75; striker.x = Math.max(striker.r + 6, Math.min(cvs.width - striker.r - 6, striker.x)); playSound('hit'); }
-                if (striker.y < striker.r + 6 || striker.y > cvs.height - striker.r - 6) { striker.vy *= -0.75; striker.y = Math.max(striker.r + 6, Math.min(cvs.height - striker.r - 6, striker.y)); playSound('hit'); }
+                if (striker.x < striker.r + 20 || striker.x > BOARD_SIZE - striker.r - 20) { striker.vx *= -WALL_RESTITUTION; striker.x = Math.max(striker.r + 20, Math.min(BOARD_SIZE - striker.r - 20, striker.x)); playSound('hit', Math.abs(striker.vx)); }
+                if (striker.y < striker.r + 20 || striker.y > BOARD_SIZE - striker.r - 20) { striker.vy *= -WALL_RESTITUTION; striker.y = Math.max(striker.r + 20, Math.min(BOARD_SIZE - striker.r - 20, striker.y)); playSound('hit', Math.abs(striker.vy)); }
             }
 
+            // Coin physics
             for (let i = 0; i < coins.length; i++) {
                 let c = coins[i];
                 if (!c.active) continue;
-                if (Math.abs(c.vx) > 0.01 || Math.abs(c.vy) > 0.01) {
-                    c.vx *= 0.982; c.vy *= 0.982;
+                if (Math.abs(c.vx) > 0.05 || Math.abs(c.vy) > 0.05) {
+                    c.vx *= FRICTION; c.vy *= FRICTION;
                     c.x += c.vx; c.y += c.vy;
-                    if (c.x < c.r + 6 || c.x > cvs.width - c.r - 6) { c.vx *= -0.75; c.x = Math.max(c.r + 6, Math.min(cvs.width - c.r - 6, c.x)); playSound('hit'); }
-                    if (c.y < c.r + 6 || c.y > cvs.height - c.r - 6) { c.vy *= -0.75; c.y = Math.max(c.r + 6, Math.min(cvs.height - c.r - 6, c.y)); playSound('hit'); }
+                    if (c.x < c.r + 20 || c.x > BOARD_SIZE - c.r - 20) { c.vx *= -WALL_RESTITUTION; c.x = Math.max(c.r + 20, Math.min(BOARD_SIZE - c.r - 20, c.x)); playSound('hit', Math.abs(c.vx)); }
+                    if (c.y < c.r + 20 || c.y > BOARD_SIZE - c.r - 20) { c.vy *= -WALL_RESTITUTION; c.y = Math.max(c.r + 20, Math.min(BOARD_SIZE - c.r - 20, c.y)); playSound('hit', Math.abs(c.vy)); }
                 }
                 resolveCollision(striker, c);
                 for (let j = i + 1; j < coins.length; j++) resolveCollision(c, coins[j]);
             }
 
+            // Pocket Check
             coins.forEach(c => {
                 if (!c.active) return;
-                pockets.forEach(p => {
-                    if (Math.hypot(c.x - p[0], c.y - p[1]) < 16) {
+                POCKETS.forEach(p => {
+                    if (Math.hypot(c.x - p[0], c.y - p[1]) < POCKET_RADIUS - 5) {
                         c.active = false; c.vx = 0; c.vy = 0;
                         pocketedThisShot.push(c);
+                        spawnParticles(p[0], p[1], c.c);
                         playSound('pocket');
                     }
                 });
             });
 
-            pockets.forEach(p => {
-                if (striker.active && Math.hypot(striker.x - p[0], striker.y - p[1]) < 18) {
-                    striker.active = false;
-                    striker.vx = 0; striker.vy = 0;
-                    showToast("Foul: Striker pocketed!");
+            POCKETS.forEach(p => {
+                if (striker.active && Math.hypot(striker.x - p[0], striker.y - p[1]) < POCKET_RADIUS) {
+                    striker.active = false; striker.vx = 0; striker.vy = 0;
+                    showToast("Foul: Striker Pocketed!");
+                    spawnParticles(p[0], p[1], striker.c);
                     playSound('pocket');
                 }
             });
 
-            if (shotTaken && !isMoving()) {
-                resolveTurn();
+            // Particles update
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if (p.life <= 0) particles.splice(i, 1);
             }
+
+            if (cameraShake > 0) cameraShake *= 0.9;
+            if (cameraShake < 0.5) cameraShake = 0;
+
+            if (shotTaken && !isMoving()) resolveTurn();
         }
 
         function resolveTurn() {
@@ -365,142 +468,183 @@
             let keepTurn = false;
             let foul = !striker.active;
 
-            if (!striker.active) {
+            if (foul) {
+                // Striker foul: return pocketed coins to center
                 pocketedThisShot.forEach(pc => {
-                    if (pc.type === (turn === 1 ? 'white' : 'black')) {
-                        pc.active = true;
-                        pc.x = 200; pc.y = 200;
-                    }
+                    pc.active = true; pc.x = 500 + (Math.random()-0.5)*20; pc.y = 500 + (Math.random()-0.5)*20;
                 });
             } else {
+                let targetType = turn === 1 ? 'white' : 'black';
+                let opponentType = turn === 1 ? 'black' : 'white';
+
                 pocketedThisShot.forEach(pc => {
-                    if (pc.type === 'white') {
-                        if (turn === 1) { p1Score--; keepTurn = true; }
-                        else { p2Score--; }
-                    } else if (pc.type === 'black') {
-                        if (turn === 2) { p2Score--; keepTurn = true; }
-                        else { p1Score--; }
+                    if (pc.type === targetType) {
+                        if (turn === 1) p1Score--; else p2Score--;
+                        keepTurn = true;
+                        showToast("Good shot!");
+                    } else if (pc.type === opponentType) {
+                        if (turn === 1) p2Score--; else p1Score--;
                     } else if (pc.type === 'queen') {
                         queenCoverNeeded = true;
-                        showToast("Queen pocketed! Must cover next.");
+                        showToast("Queen pocketed! Cover it.");
                         keepTurn = true;
                     }
                 });
 
                 if (queenCoverNeeded && pocketedThisShot.length > 0) {
-                    let covered = pocketedThisShot.some(pc => pc.type === (turn === 1 ? 'white' : 'black'));
-                    if (covered) {
+                    if (pocketedThisShot.some(pc => pc.type === targetType)) {
                         queenCoverNeeded = false;
-                        showToast("Queen covered successfully!");
+                        showToast("Queen covered!");
                     }
                 }
             }
 
+            // Queen penalty if turn ends without cover
+            if (queenCoverNeeded && !keepTurn) {
+                let q = coins.find(c => c.type === 'queen');
+                q.active = true; q.x = 500; q.y = 500;
+                queenCoverNeeded = false;
+                showToast("Queen not covered, returned.");
+            }
+
             resetStriker();
 
-            if (p1Score <= 0) {
+            if (p1Score <= 0 && !queenCoverNeeded) {
                 document.getElementById('winTitle').innerText = "Player 1 Wins!";
-                document.getElementById('winModal').style.display = 'flex';
-                return;
-            } else if (p2Score <= 0) {
+                document.getElementById('gameOverMenu').classList.remove('hidden');
+                isPlaying = false; return;
+            } else if (p2Score <= 0 && !queenCoverNeeded) {
                 document.getElementById('winTitle').innerText = "Player 2 Wins!";
-                document.getElementById('winModal').style.display = 'flex';
-                return;
+                document.getElementById('gameOverMenu').classList.remove('hidden');
+                isPlaying = false; return;
             }
 
-            if (!keepTurn || foul) {
-                turn = turn === 1 ? 2 : 1;
-            }
+            if (!keepTurn || foul) { turn = turn === 1 ? 2 : 1; }
             updateHUD();
         }
 
-        // --- Canvas Rendering with Pool-Style Visuals ---
+        // --- Render Engine ---
         function drawBoard() {
-            ctx.clearRect(0, 0, cvs.width, cvs.height);
-
-            // Inset Gold Trim Border
-            ctx.strokeStyle = '#eab308';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(10, 10, cvs.width - 20, cvs.height - 20);
-
-            // Edge Studs (Gold dot markers)
-            ctx.fillStyle = '#fef08a';
-            for (let i = 50; i < cvs.width; i += 75) {
-                ctx.beginPath(); ctx.arc(i, 10, 2.5, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(i, cvs.height - 10, 2.5, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(10, i, 2.5, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(cvs.width - 10, i, 2.5, 0, Math.PI*2); ctx.fill();
+            ctx.save();
+            if (cameraShake > 0) {
+                ctx.translate((Math.random()-0.5)*cameraShake, (Math.random()-0.5)*cameraShake);
             }
 
-            // Black Corner Wedges behind Pockets
+            ctx.clearRect(0, 0, BOARD_SIZE, BOARD_SIZE);
+
+            // Amber Wood Background
+            let bgGrad = ctx.createRadialGradient(500, 500, 100, 500, 500, 800);
+            bgGrad.addColorStop(0, '#f59e0b'); // Amber 500
+            bgGrad.addColorStop(1, '#92400e'); // Amber 900
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, BOARD_SIZE, BOARD_SIZE);
+
+            // Gold Inner Border
+            ctx.strokeStyle = '#facc15'; ctx.lineWidth = 8;
+            ctx.strokeRect(30, 30, BOARD_SIZE - 60, BOARD_SIZE - 60);
+
+            // Black Wedge Corners
             ctx.fillStyle = '#09090b';
-            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(45, 0); ctx.lineTo(0, 45); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(cvs.width, 0); ctx.lineTo(cvs.width - 45, 0); ctx.lineTo(cvs.width, 45); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(0, cvs.height); ctx.lineTo(45, cvs.height); ctx.lineTo(0, cvs.height - 45); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(cvs.width, cvs.height); ctx.lineTo(cvs.width - 45, cvs.height); ctx.lineTo(cvs.width, cvs.height - 45); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(120, 0); ctx.lineTo(0, 120); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(BOARD_SIZE, 0); ctx.lineTo(BOARD_SIZE - 120, 0); ctx.lineTo(BOARD_SIZE, 120); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(0, BOARD_SIZE); ctx.lineTo(120, BOARD_SIZE); ctx.lineTo(0, BOARD_SIZE - 120); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(BOARD_SIZE, BOARD_SIZE); ctx.lineTo(BOARD_SIZE - 120, BOARD_SIZE); ctx.lineTo(BOARD_SIZE, BOARD_SIZE - 120); ctx.fill();
 
-            // Pockets (Gold ring + dark hole)
-            pockets.forEach(p => {
-                ctx.beginPath(); ctx.arc(p[0], p[1], 18, 0, Math.PI*2);
-                let grad = ctx.createRadialGradient(p[0], p[1], 5, p[0], p[1], 18);
-                grad.addColorStop(0, '#000000');
-                grad.addColorStop(0.8, '#18181b');
-                grad.addColorStop(1, '#eab308');
-                ctx.fillStyle = grad; ctx.fill();
-                ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 1.5; ctx.stroke();
+            // Pockets
+            POCKETS.forEach(p => {
+                ctx.beginPath(); ctx.arc(p[0], p[1], POCKET_RADIUS, 0, Math.PI*2);
+                let pGrad = ctx.createRadialGradient(p[0]-10, p[1]-10, 5, p[0], p[1], POCKET_RADIUS);
+                pGrad.addColorStop(0, '#18181b'); pGrad.addColorStop(1, '#000000');
+                ctx.fillStyle = pGrad; ctx.fill();
+                ctx.strokeStyle = '#eab308'; ctx.lineWidth = 4; ctx.stroke();
             });
 
-            // Center Rosette / Mandala Art
-            ctx.beginPath(); ctx.arc(200, 200, 42, 0, Math.PI*2); ctx.strokeStyle = 'rgba(92, 58, 33, 0.3)'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.beginPath(); ctx.arc(200, 200, 14, 0, Math.PI*2); ctx.fillStyle = 'rgba(92, 58, 33, 0.25)'; ctx.fill();
-
-            // Baseline Striker Badges (Star Target Badge)
-            [ [200, 310], [200, 90] ].forEach(b => {
-                ctx.beginPath(); ctx.arc(b[0], b[1], 18, 0, Math.PI*2);
-                ctx.fillStyle = '#dc2626'; ctx.fill();
-                ctx.strokeStyle = '#eab308'; ctx.lineWidth = 1.5; ctx.stroke();
+            // Center Mandala
+            ctx.beginPath(); ctx.arc(500, 500, 110, 0, Math.PI*2); ctx.strokeStyle = 'rgba(120, 53, 15, 0.4)'; ctx.lineWidth = 4; ctx.stroke();
+            ctx.beginPath(); ctx.arc(500, 500, 35, 0, Math.PI*2); ctx.fillStyle = 'rgba(120, 53, 15, 0.3)'; ctx.fill();
+            
+            // Baseline Target Badges (Stars)
+            ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 4;
+            [ [BASELINE_Y_P1, true], [BASELINE_Y_P2, false] ].forEach(b => {
+                // Lines
+                ctx.beginPath(); ctx.moveTo(BASELINE_MIN_X, b[0]); ctx.lineTo(BASELINE_MAX_X, b[0]); ctx.stroke();
+                // Badges
+                [BASELINE_MIN_X, BASELINE_MAX_X].forEach(x => {
+                    ctx.beginPath(); ctx.arc(x, b[0], 24, 0, Math.PI*2); ctx.fillStyle = '#dc2626'; ctx.fill();
+                    ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3; ctx.stroke();
+                    // Star shape simple abstraction (inner white circle for performance)
+                    ctx.beginPath(); ctx.arc(x, b[0], 8, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
+                });
             });
 
-            // Coins with gloss radial gradients
+            // Coins
             coins.forEach(c => {
                 if (!c.active) return;
+                
+                // Shadow
+                ctx.beginPath(); ctx.arc(c.x + 4, c.y + 4, c.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill();
+
+                // Body Gradient
                 ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-                let grad = ctx.createRadialGradient(c.x - 3, c.y - 3, 1, c.x, c.y, c.r);
+                let grad = ctx.createRadialGradient(c.x - c.r*0.3, c.y - c.r*0.3, c.r*0.1, c.x, c.y, c.r);
                 if (c.type === 'queen') {
-                    grad.addColorStop(0, '#f87171'); grad.addColorStop(1, '#b91c1c');
+                    grad.addColorStop(0, '#fca5a5'); grad.addColorStop(0.2, '#ef4444'); grad.addColorStop(1, '#7f1d1d');
                 } else if (c.type === 'white') {
-                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#cbd5e1');
+                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.3, '#fdfbf7'); grad.addColorStop(1, '#94a3b8');
                 } else {
-                    grad.addColorStop(0, '#475569'); grad.addColorStop(1, '#0f172a');
+                    grad.addColorStop(0, '#64748b'); grad.addColorStop(0.2, '#334155'); grad.addColorStop(1, '#0f172a');
                 }
                 ctx.fillStyle = grad; ctx.fill();
-                ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1; ctx.stroke();
+                ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 2; ctx.stroke();
+                
+                // Inner rim detail
+                ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.65, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1.5; ctx.stroke();
             });
 
-            // Striker (Ivory/gold gradient with thick rim)
+            // Striker
             if (striker.active) {
+                ctx.beginPath(); ctx.arc(striker.x + 5, striker.y + 5, striker.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
+
                 ctx.beginPath(); ctx.arc(striker.x, striker.y, striker.r, 0, Math.PI * 2);
-                let sGrad = ctx.createRadialGradient(striker.x - 3, striker.y - 3, 2, striker.x, striker.y, striker.r);
-                sGrad.addColorStop(0, '#fffbeb'); sGrad.addColorStop(1, '#fde047');
+                let sGrad = ctx.createRadialGradient(striker.x - 8, striker.y - 8, 5, striker.x, striker.y, striker.r);
+                sGrad.addColorStop(0, '#ffffff'); sGrad.addColorStop(0.3, '#fef08a'); sGrad.addColorStop(1, '#ca8a04');
                 ctx.fillStyle = sGrad; ctx.fill();
-                ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 2.5; ctx.stroke();
+                ctx.strokeStyle = '#854d0e'; ctx.lineWidth = 4; ctx.stroke();
+                
+                // Striker inner star/dot
+                ctx.beginPath(); ctx.arc(striker.x, striker.y, striker.r * 0.4, 0, Math.PI * 2);
+                ctx.fillStyle = '#dc2626'; ctx.fill();
             }
 
-            // Aim Line & Dynamic Power Rings when dragging
-            if (isDragging) {
+            // Particles
+            particles.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.life * 6, 0, Math.PI * 2);
+                ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.fill(); ctx.globalAlpha = 1;
+            });
+
+            // Aim Line
+            if (isDragging && !isMoving() && !isPaused) {
                 let dx = dragCurrentX - startX;
                 let dy = dragCurrentY - startY;
                 let power = Math.hypot(dx, dy);
 
-                ctx.strokeStyle = power > 80 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(250, 204, 21, 0.9)';
-                ctx.lineWidth = Math.min(6, 2 + power / 20);
-                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = power > 150 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(250, 204, 21, 0.8)';
+                ctx.lineWidth = Math.min(12, 4 + power / 25);
+                ctx.setLineDash([15, 10]);
                 ctx.beginPath();
                 ctx.moveTo(striker.x, striker.y);
                 ctx.lineTo(striker.x + dx * 1.5, striker.y + dy * 1.5);
                 ctx.stroke();
                 ctx.setLineDash([]);
+                
+                // Power Rings around striker
+                ctx.beginPath(); ctx.arc(striker.x, striker.y, striker.r + power/3, 0, Math.PI*2);
+                ctx.strokeStyle = `rgba(250, 204, 21, ${Math.min(0.5, power/400)})`; ctx.lineWidth = 4; ctx.stroke();
             }
+            ctx.restore();
         }
 
         function gameLoop() {
@@ -509,7 +653,8 @@
             requestAnimationFrame(gameLoop);
         }
 
-        resetBoard();
+        // Initialize Render Loop immediately for background
+        drawBoard();
         gameLoop();
     </script>
 </body>
