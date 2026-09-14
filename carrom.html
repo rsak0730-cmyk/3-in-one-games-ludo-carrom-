@@ -7,40 +7,48 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body, html { width: 100vw; height: 100vh; background: #120c1f; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 10px 0; }
+        body, html { width: 100vw; height: 100vh; background: radial-gradient(circle, #581c87 0%, #3b0764 100%, #1e1b4b 100%); color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 8px 0; }
 
-        /* Top HUD / Scoreboard */
-        .hud-top { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; z-index: 10; }
-        .player-card { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); min-width: 130px; transition: all 0.3s ease; }
-        .player-card.active-turn { border-color: #facc15; box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); background: rgba(250, 204, 21, 0.1); }
-        .player-avatar { width: 32px; height: 32px; border-radius: 50%; background: #facc15; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color: #000; border: 2px solid #fff; }
+        /* Top HUD / Player Cards */
+        .hud-top { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; padding: 0 14px; z-index: 10; }
+        .match-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #c4b5fd; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 10px; text-align: center; width: 100%; max-width: 420px; margin-bottom: 2px; border: 1px solid rgba(255,255,255,0.08); }
+        
+        .player-card { display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.6); padding: 5px 10px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.12); min-width: 125px; transition: all 0.3s ease; }
+        .player-card.active-turn { border-color: #facc15; box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); background: rgba(250, 204, 21, 0.15); }
+        
+        .avatar-wrap { position: relative; width: 34px; height: 34px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; border: 2px solid #facc15; }
+        .avatar-wrap i { font-size: 14px; color: #f8fafc; }
+        .level-badge { position: absolute; bottom: -3px; right: -3px; background: #ca8a04; color: #000; font-size: 8px; font-weight: 900; padding: 1px 3px; border-radius: 6px; border: 1px solid #fff; }
+
         .player-info { display: flex; flex-direction: column; }
         .player-name { font-size: 11px; font-weight: 900; color: #f3f4f6; }
-        .player-score { font-size: 10px; color: #cbd5e1; font-weight: 700; }
+        .player-score { font-size: 10px; color: #facc15; font-weight: 800; display: flex; align-items: center; gap: 3px; }
         
-        .turn-banner { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #facc15; text-align: center; backdrop-filter: blur(5px); }
+        .turn-banner { background: rgba(0,0,0,0.4); border: 1px solid rgba(250, 204, 21, 0.3); padding: 4px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; color: #facc15; text-align: center; }
 
         /* Board Container */
-        .board-container { position: relative; width: 92vw; height: 92vw; max-width: 380px; max-height: 380px; display: flex; align-items: center; justify-content: center; }
-        canvas { background: #deb887; border: 18px solid #5c3a21; border-radius: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.2); width: 100%; height: 100%; }
+        .board-container { position: relative; width: 90vw; height: 90vw; max-width: 360px; max-height: 360px; display: flex; align-items: center; justify-content: center; }
+        canvas { background: #deb887; border: 16px solid #451a03; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.3); width: 100%; height: 100%; }
 
-        /* Bottom Controls / Baseline Slider */
-        .hud-bottom { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0 16px; z-index: 10; }
-        .striker-control-bar { width: 85%; max-width: 320px; height: 36px; background: rgba(0,0,0,0.5); border-radius: 18px; border: 1px solid rgba(255,255,255,0.2); position: relative; display: flex; align-items: center; padding: 0 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6); }
-        .control-knob { position: absolute; width: 28px; height: 28px; background: radial-gradient(circle, #facc15 0%, #ca8a04 100%); border-radius: 50%; top: 3px; left: calc(50% - 14px); cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+        /* Bottom Controls / Star Badge Slider */
+        .hud-bottom { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 16px; z-index: 10; }
+        .striker-control-bar { width: 85%; max-width: 300px; height: 36px; background: rgba(0,0,0,0.5); border-radius: 18px; border: 1px solid rgba(255,255,255,0.15); position: relative; display: flex; align-items: center; padding: 0 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6); }
+        
+        /* Star Badge Slider Knob */
+        .control-knob { position: absolute; width: 30px; height: 30px; background: radial-gradient(circle, #ef4444 0%, #b91c1c 100%); border-radius: 50%; top: 3px; left: calc(50% - 15px); cursor: pointer; border: 2px solid #facc15; box-shadow: 0 2px 6px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #facc15; font-size: 12px; }
 
-        .action-buttons { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
-        .btn-icon { width: 42px; height: 42px; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); border: none; border-radius: 50%; color: #000; font-size: 16px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fef08a; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .action-buttons { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
+        .btn-icon { width: 40px; height: 40px; background: radial-gradient(circle, #facc15 0%, #ca8a04 100%); border: none; border-radius: 50%; color: #000; font-size: 16px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fef08a; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         .btn-icon:active { transform: scale(0.92); }
 
-        /* Toast notifications */
-        #toast { position: fixed; top: 75px; left: 50%; transform: translateX(-50%) translateY(-50px); background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(250, 204, 21, 0.5); color: #fef08a; padding: 8px 16px; border-radius: 16px; font-size: 12px; font-weight: 800; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+        /* Toast Popup */
+        #toast { position: fixed; top: 75px; left: 50%; transform: translateX(-50%) translateY(-30px); background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(250, 204, 21, 0.5); color: #fef08a; padding: 8px 16px; border-radius: 16px; font-size: 11px; font-weight: 800; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* Game Over / Win Overlay */
+        /* Win Modal */
         #winModal { position: fixed; inset: 0; background: rgba(10, 5, 20, 0.9); backdrop-filter: blur(10px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .win-card { background: #1e1b4b; width: 100%; max-width: 320px; border-radius: 24px; padding: 24px; border: 2px solid #facc15; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
-        .btn-restart { width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 900; cursor: pointer; border: none; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); color: #000; text-transform: uppercase; margin-top: 15px; }
+        .win-card { background: #2e1065; width: 100%; max-width: 320px; border-radius: 24px; padding: 24px; border: 2px solid #facc15; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
+        .btn-restart { width: 100%; padding: 14px; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; border: none; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); color: #000; text-transform: uppercase; margin-top: 15px; border: 1px solid #fef08a; }
     </style>
 </head>
 <body>
@@ -48,19 +56,29 @@
     <div id="toast">Foul: Striker pocketed!</div>
 
     <div class="hud-top">
+        <div class="match-badge">Local Match · First to clear wins</div>
+    </div>
+
+    <div class="hud-top">
         <div class="player-card active-turn" id="p1Card">
-            <div class="player-avatar" style="background:#f8fafc; color:#0f172a;">P1</div>
+            <div class="avatar-wrap">
+                <i class="fa-solid fa-user-ninja"></i>
+                <span class="level-badge">12</span>
+            </div>
             <div class="player-info">
-                <span class="player-name">Player 1 (White)</span>
-                <span class="player-score">Coins: <span id="p1Count">9</span></span>
+                <span class="player-name">Player 1</span>
+                <span class="player-score"><i class="fa-solid fa-circle" style="color:#fdfbf7; font-size:8px;"></i> <span id="p1Count">9</span> left</span>
             </div>
         </div>
         <div class="turn-banner" id="turnBanner">P1's Turn</div>
         <div class="player-card" id="p2Card">
-            <div class="player-avatar" style="background:#1e293b; color:#fff;">P2</div>
+            <div class="avatar-wrap" style="border-color:#3b82f6;">
+                <i class="fa-solid fa-user-astronaut"></i>
+                <span class="level-badge" style="background:#2563eb; color:#fff;">10</span>
+            </div>
             <div class="player-info">
-                <span class="player-name">Player 2 (Black)</span>
-                <span class="player-score">Coins: <span id="p2Count">9</span></span>
+                <span class="player-name">Player 2</span>
+                <span class="player-score"><i class="fa-solid fa-circle" style="color:#1e293b; font-size:8px;"></i> <span id="p2Count">9</span> left</span>
             </div>
         </div>
     </div>
@@ -71,11 +89,11 @@
 
     <div class="hud-bottom">
         <div class="striker-control-bar" id="sliderBar">
-            <div class="control-knob" id="controlKnob"></div>
+            <div class="control-knob" id="controlKnob"><i class="fa-solid fa-star" style="font-size:10px;"></i></div>
         </div>
         <div class="action-buttons">
             <button class="btn-icon" onclick="resetBoard()" title="Restart Match"><i class="fa-solid fa-rotate-right"></i></button>
-            <button class="btn-icon" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:#fff; border-color:#fca5a5;" onclick="quitToHome()" title="Exit Match"><i class="fa-solid fa-power-off"></i></button>
+            <button class="btn-icon" style="background:radial-gradient(circle, #ef4444 0%, #b91c1c 100%); color:#fff; border-color:#fca5a5;" onclick="quitToHome()" title="Exit Match"><i class="fa-solid fa-power-off"></i></button>
             <button class="btn-icon" onclick="toggleSound()" id="soundBtn" title="Toggle Sound"><i class="fa-solid fa-volume-high"></i></button>
         </div>
     </div>
@@ -83,8 +101,8 @@
     <div id="winModal">
         <div class="win-card">
             <i class="fa-solid fa-trophy" style="font-size: 48px; color: #facc15; margin-bottom: 12px;"></i>
-            <h2 id="winTitle" style="font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 8px;">Player 1 Wins!</h2>
-            <p id="winDesc" style="font-size: 12px; color: #cbd5e1; margin-bottom: 15px;">All coins successfully pocketed and covered.</p>
+            <h2 id="winTitle" style="font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 8px;">Player 1 Wins!</h2>
+            <p id="winDesc" style="font-size: 11px; color: #cbd5e1; margin-bottom: 15px;">All coins successfully pocketed and covered.</p>
             <button class="btn-restart" onclick="resetBoard()">Play Again</button>
         </div>
     </div>
@@ -104,20 +122,20 @@
             gain.connect(audioCtx.destination);
 
             if (type === 'hit') {
-                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.06);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.06);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.06);
             } else if (type === 'pocket') {
-                osc.frequency.setValueAtTime(350, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+                osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.12);
             } else if (type === 'shoot') {
-                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(280, audioCtx.currentTime + 0.05);
+                osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(300, audioCtx.currentTime + 0.05);
                 gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.05);
@@ -147,10 +165,10 @@
         let coins = [];
         let striker = { id: 'striker', c: '#fffbeb', x: 200, y: 310, r: 13, vx: 0, vy: 0, mass: 1.8, active: true };
         
-        let turn = 1; // 1 for Player 1 (White), 2 for Player 2 (Black)
+        let turn = 1; 
         let p1Score = 9;
         let p2Score = 9;
-        let queenCoverNeeded = false; // true if queen was pocketed and needs a cover coin
+        let queenCoverNeeded = false;
         let shotTaken = false;
         let pocketedThisShot = [];
 
@@ -163,22 +181,21 @@
 
         function initPieces() {
             coins = [{ id: 'queen', c: '#dc2626', x: 200, y: 200, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: 'queen' }];
-            // 9 White coins, 9 Black coins arranged in standard star pattern
+            
+            // Inner Hex Ring (6 coins)
             for (let i = 0; i < 6; i++) {
                 let angle = i * (Math.PI / 3);
-                coins.push({ id: `w_${i}`, c: '#fdfbf7', x: 200 + Math.cos(angle)*20, y: 200 + Math.sin(angle)*20, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: 'white' });
+                let type = i % 2 === 0 ? 'white' : 'black';
+                let color = type === 'white' ? '#fdfbf7' : '#1e293b';
+                coins.push({ id: `inner_${i}`, c: color, x: 200 + Math.cos(angle)*19, y: 200 + Math.sin(angle)*19, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: type });
             }
-            for (let i = 0; i < 6; i++) {
-                let angle = i * (Math.PI / 6);
-                let color = i % 2 === 0 ? '#1e293b' : '#fdfbf7';
+
+            // Outer Hex Ring (12 coins rotated by 15 degrees, 360 full loop)
+            for (let i = 0; i < 12; i++) {
+                let angle = i * (Math.PI / 6) + (Math.PI / 12);
                 let type = i % 2 === 0 ? 'black' : 'white';
-                coins.push({ id: `b_${i}`, c: color, x: 200 + Math.cos(angle)*40, y: 200 + Math.sin(angle)*40, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: type });
-            }
-            // Add remaining 3 white and 3 black coins to complete 9 of each
-            let extraAngles = [0, (2*Math.PI)/3, (4*Math.PI)/3];
-            for (let i = 0; i < 3; i++) {
-                coins.push({ id: `w_ex_${i}`, c: '#fdfbf7', x: 200 + Math.cos(extraAngles[i])*55, y: 200 + Math.sin(extraAngles[i])*55, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: 'white' });
-                coins.push({ id: `b_ex_${i}`, c: '#1e293b', x: 200 + Math.cos(extraAngles[i] + 0.5)*55, y: 200 + Math.sin(extraAngles[i] + 0.5)*55, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: 'black' });
+                let color = type === 'white' ? '#fdfbf7' : '#1e293b';
+                coins.push({ id: `outer_${i}`, c: color, x: 200 + Math.cos(angle)*40, y: 200 + Math.sin(angle)*40, r: 9, vx: 0, vy: 0, mass: 1, active: true, type: type });
             }
             resetStriker();
         }
@@ -188,7 +205,7 @@
             striker.y = turn === 1 ? 310 : 90;
             striker.vx = 0; striker.vy = 0;
             striker.active = true;
-            document.getElementById('controlKnob').style.left = 'calc(50% - 14px)';
+            document.getElementById('controlKnob').style.left = 'calc(50% - 15px)';
         }
 
         function updateHUD() {
@@ -219,11 +236,11 @@
         window.addEventListener('pointerup', () => isSliding = false);
 
         function updateStrikerPos(e) {
-            if (isMoving()) return; // Can't move striker while board is in motion
+            if (isMoving()) return;
             const rect = sliderBar.getBoundingClientRect();
             let pos = (e.clientX - rect.left) / rect.width;
             pos = Math.max(0.1, Math.min(0.9, pos));
-            knob.style.left = `calc(${pos * 100}% - 14px)`;
+            knob.style.left = `calc(${pos * 100}% - 15px)`;
             striker.x = 120 + pos * 160;
         }
 
@@ -256,14 +273,12 @@
             if (!isDragging) return;
             isDragging = false;
             
-            // Calculate pull-back vector
             let dx = dragCurrentX - startX;
             let dy = dragCurrentY - startY;
             let power = Math.hypot(dx, dy);
             if (power > 5) {
                 let maxPower = 120;
                 let scale = Math.min(power, maxPower) / maxPower;
-                // Shoot in opposite direction of drag
                 striker.vx = (-dx / power) * scale * 18;
                 striker.vy = (-dy / power) * scale * 18;
                 shotTaken = true;
@@ -280,7 +295,7 @@
             return false;
         }
 
-        // --- Rigid Body Physics & Collisions ---
+        // --- Physics & Collisions ---
         function resolveCollision(a, b) {
             if (!a.active || !b.active) return;
             let dx = b.x - a.x; let dy = b.y - a.y; let dist = Math.hypot(dx, dy);
@@ -300,11 +315,9 @@
         const pockets = [[22,22], [378,22], [22,378], [378,378]];
 
         function updatePhysics() {
-            // Apply friction
             if (Math.abs(striker.vx) > 0.01 || Math.abs(striker.vy) > 0.01) {
                 striker.vx *= 0.982; striker.vy *= 0.982;
                 striker.x += striker.vx; striker.y += striker.vy;
-                // Wall Bounce
                 if (striker.x < striker.r + 6 || striker.x > cvs.width - striker.r - 6) { striker.vx *= -0.75; striker.x = Math.max(striker.r + 6, Math.min(cvs.width - striker.r - 6, striker.x)); playSound('hit'); }
                 if (striker.y < striker.r + 6 || striker.y > cvs.height - striker.r - 6) { striker.vy *= -0.75; striker.y = Math.max(striker.r + 6, Math.min(cvs.height - striker.r - 6, striker.y)); playSound('hit'); }
             }
@@ -322,7 +335,6 @@
                 for (let j = i + 1; j < coins.length; j++) resolveCollision(c, coins[j]);
             }
 
-            // Check Pocketing
             coins.forEach(c => {
                 if (!c.active) return;
                 pockets.forEach(p => {
@@ -334,7 +346,6 @@
                 });
             });
 
-            // Check Striker Pocketed (Foul)
             pockets.forEach(p => {
                 if (striker.active && Math.hypot(striker.x - p[0], striker.y - p[1]) < 18) {
                     striker.active = false;
@@ -344,7 +355,6 @@
                 }
             });
 
-            // Handle turn resolution when all motion stops
             if (shotTaken && !isMoving()) {
                 resolveTurn();
             }
@@ -355,20 +365,18 @@
             let keepTurn = false;
             let foul = !striker.active;
 
-            // If striker went in, return any pocketed coin of opponent or penalty
             if (!striker.active) {
                 pocketedThisShot.forEach(pc => {
                     if (pc.type === (turn === 1 ? 'white' : 'black')) {
-                        pc.active = true; // return pocketed coin
+                        pc.active = true;
                         pc.x = 200; pc.y = 200;
                     }
                 });
             } else {
-                // Evaluate pocketed coins
                 pocketedThisShot.forEach(pc => {
                     if (pc.type === 'white') {
                         if (turn === 1) { p1Score--; keepTurn = true; }
-                        else { p2Score--; } // opponent scored
+                        else { p2Score--; }
                     } else if (pc.type === 'black') {
                         if (turn === 2) { p2Score--; keepTurn = true; }
                         else { p1Score--; }
@@ -379,7 +387,6 @@
                     }
                 });
 
-                // Check Queen Cover rule
                 if (queenCoverNeeded && pocketedThisShot.length > 0) {
                     let covered = pocketedThisShot.some(pc => pc.type === (turn === 1 ? 'white' : 'black'));
                     if (covered) {
@@ -391,7 +398,6 @@
 
             resetStriker();
 
-            // Check Win Condition
             if (p1Score <= 0) {
                 document.getElementById('winTitle').innerText = "Player 1 Wins!";
                 document.getElementById('winModal').style.display = 'flex';
@@ -402,57 +408,95 @@
                 return;
             }
 
-            // Switch turn if no legal coin pocketed
             if (!keepTurn || foul) {
                 turn = turn === 1 ? 2 : 1;
             }
             updateHUD();
         }
 
-        // --- Canvas Rendering ---
+        // --- Canvas Rendering with Pool-Style Visuals ---
         function drawBoard() {
             ctx.clearRect(0, 0, cvs.width, cvs.height);
 
-            // Center Ring & Artwork
-            ctx.beginPath(); ctx.arc(200, 200, 38, 0, Math.PI*2); ctx.strokeStyle = 'rgba(92, 58, 33, 0.35)'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.beginPath(); ctx.arc(200, 200, 12, 0, Math.PI*2); ctx.fillStyle = 'rgba(92, 58, 33, 0.2)'; ctx.fill();
+            // Inset Gold Trim Border
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(10, 10, cvs.width - 20, cvs.height - 20);
 
-            // Pockets
+            // Edge Studs (Gold dot markers)
+            ctx.fillStyle = '#fef08a';
+            for (let i = 50; i < cvs.width; i += 75) {
+                ctx.beginPath(); ctx.arc(i, 10, 2.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(i, cvs.height - 10, 2.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(10, i, 2.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(cvs.width - 10, i, 2.5, 0, Math.PI*2); ctx.fill();
+            }
+
+            // Black Corner Wedges behind Pockets
+            ctx.fillStyle = '#09090b';
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(45, 0); ctx.lineTo(0, 45); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cvs.width, 0); ctx.lineTo(cvs.width - 45, 0); ctx.lineTo(cvs.width, 45); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(0, cvs.height); ctx.lineTo(45, cvs.height); ctx.lineTo(0, cvs.height - 45); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cvs.width, cvs.height); ctx.lineTo(cvs.width - 45, cvs.height); ctx.lineTo(cvs.width, cvs.height - 45); ctx.fill();
+
+            // Pockets (Gold ring + dark hole)
             pockets.forEach(p => {
-                ctx.beginPath(); ctx.arc(p[0], p[1], 16, 0, Math.PI*2); ctx.fillStyle = '#050505'; ctx.fill();
-                ctx.strokeStyle = '#18181b'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.beginPath(); ctx.arc(p[0], p[1], 18, 0, Math.PI*2);
+                let grad = ctx.createRadialGradient(p[0], p[1], 5, p[0], p[1], 18);
+                grad.addColorStop(0, '#000000');
+                grad.addColorStop(0.8, '#18181b');
+                grad.addColorStop(1, '#eab308');
+                ctx.fillStyle = grad; ctx.fill();
+                ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 1.5; ctx.stroke();
             });
 
-            // Base Lines & Striker Circles
-            ctx.strokeStyle = 'rgba(220, 38, 38, 0.5)'; ctx.lineWidth = 1.5;
-            [ [200, 310, 30], [200, 90, 30] ].forEach(b => {
-                ctx.beginPath(); ctx.arc(b[0], b[1], b[2], 0, Math.PI*2); ctx.stroke();
+            // Center Rosette / Mandala Art
+            ctx.beginPath(); ctx.arc(200, 200, 42, 0, Math.PI*2); ctx.strokeStyle = 'rgba(92, 58, 33, 0.3)'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.beginPath(); ctx.arc(200, 200, 14, 0, Math.PI*2); ctx.fillStyle = 'rgba(92, 58, 33, 0.25)'; ctx.fill();
+
+            // Baseline Striker Badges (Star Target Badge)
+            [ [200, 310], [200, 90] ].forEach(b => {
+                ctx.beginPath(); ctx.arc(b[0], b[1], 18, 0, Math.PI*2);
+                ctx.fillStyle = '#dc2626'; ctx.fill();
+                ctx.strokeStyle = '#eab308'; ctx.lineWidth = 1.5; ctx.stroke();
             });
 
-            // Coins
+            // Coins with gloss radial gradients
             coins.forEach(c => {
                 if (!c.active) return;
                 ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-                ctx.fillStyle = c.c; ctx.fill();
-                ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1.5; ctx.stroke();
+                let grad = ctx.createRadialGradient(c.x - 3, c.y - 3, 1, c.x, c.y, c.r);
+                if (c.type === 'queen') {
+                    grad.addColorStop(0, '#f87171'); grad.addColorStop(1, '#b91c1c');
+                } else if (c.type === 'white') {
+                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#cbd5e1');
+                } else {
+                    grad.addColorStop(0, '#475569'); grad.addColorStop(1, '#0f172a');
+                }
+                ctx.fillStyle = grad; ctx.fill();
+                ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1; ctx.stroke();
             });
 
-            // Striker
+            // Striker (Ivory/gold gradient with thick rim)
             if (striker.active) {
                 ctx.beginPath(); ctx.arc(striker.x, striker.y, striker.r, 0, Math.PI * 2);
-                ctx.fillStyle = striker.c; ctx.fill();
+                let sGrad = ctx.createRadialGradient(striker.x - 3, striker.y - 3, 2, striker.x, striker.y, striker.r);
+                sGrad.addColorStop(0, '#fffbeb'); sGrad.addColorStop(1, '#fde047');
+                ctx.fillStyle = sGrad; ctx.fill();
                 ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 2.5; ctx.stroke();
             }
 
-            // Aim Line when dragging
+            // Aim Line & Dynamic Power Rings when dragging
             if (isDragging) {
-                ctx.strokeStyle = 'rgba(250, 204, 21, 0.8)';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(striker.x, striker.y);
                 let dx = dragCurrentX - startX;
                 let dy = dragCurrentY - startY;
+                let power = Math.hypot(dx, dy);
+
+                ctx.strokeStyle = power > 80 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(250, 204, 21, 0.9)';
+                ctx.lineWidth = Math.min(6, 2 + power / 20);
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(striker.x, striker.y);
                 ctx.lineTo(striker.x + dx * 1.5, striker.y + dy * 1.5);
                 ctx.stroke();
                 ctx.setLineDash([]);
@@ -470,4 +514,3 @@
     </script>
 </body>
 </html>
-
