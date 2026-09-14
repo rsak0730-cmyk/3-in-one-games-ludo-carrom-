@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SyncBeat - Unified Hub</title>
+    <title>SyncBeat - Gaming Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -28,7 +28,7 @@
         .tab-btn { flex: 1; height: 100%; border: none; background: transparent; color: rgba(255,255,255,0.4); font-size: 9px; font-weight: 800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; z-index: 2; transition: 0.3s; text-transform: uppercase; cursor: pointer; }
         .tab-btn.active { color: #fff; }
 
-        #toast { position: fixed; top: 25px; left: 50%; transform: translateX(-50%) translateY(-120px); background: rgba(20, 8, 8, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(239, 68, 68, 0.6); color: #fecaca; padding: 12px 20px; border-radius: 20px; font-size: 12px; font-weight: 800; z-index: 100000; display: flex; align-items: center; gap: 8px; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        #toast { position: fixed; top: 25px; left: 50%; transform: translateX(-50%) translateY(-120px); background: rgba(20, 8, 8, 0.95); border: 1px solid rgba(239, 68, 68, 0.6); color: #fecaca; padding: 12px 20px; border-radius: 20px; font-size: 12px; font-weight: 800; z-index: 100000; display: flex; align-items: center; gap: 8px; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
         #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
@@ -37,8 +37,8 @@
     <div id="authModal">
         <div class="auth-card">
             <i class="fa-solid fa-gamepad" style="font-size: 40px; color: #3b82f6; margin-bottom: 10px;"></i>
-            <h2 style="color: #fff; font-size: 20px;">Create Account</h2>
-            <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Your ID will be backed up locally.</p>
+            <h2 style="color: #fff; font-size: 20px;">Create Profile</h2>
+            <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Your data is saved locally on device.</p>
             <input type="text" id="usernameInput" class="auth-input" placeholder="Enter Username" autocomplete="off">
             <button class="auth-btn" onclick="saveProfile()">Start Playing</button>
         </div>
@@ -48,10 +48,10 @@
     <div id="toast"><i class="fa-solid fa-lock" style="color: #ef4444;"></i> <span id="toastMsg"></span></div>
 
     <div id="slider">
-        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;">Movies Module</div></div>
-        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;">Golden Module</div></div>
-        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;">Audio Module</div></div>
-        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;">Ludo Module</div></div>
+        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;">Movies</div></div>
+        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;">Golden</div></div>
+        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;">Audio</div></div>
+        <div class="frame-wrapper"><div style="color:#fff;text-align:center;padding-top:50vh;">Ludo</div></div>
         <div class="frame-wrapper"><iframe id="carromFrame" src="./carrom.html"></iframe></div>
     </div>
 
@@ -66,10 +66,9 @@
 
     <script>
         let playerProfile = JSON.parse(localStorage.getItem('syncbeat_profile'));
-        let activeRoomTab = null;
+        let isGameActive = false;
 
-        // Default to Carrom tab on load
-        document.getElementById('slider').style.transform = `translateX(-400vw)`;
+        document.getElementById('slider').style.transform = `translateX(-400vw)`; // Auto switch to carrom
 
         if (playerProfile) {
             document.getElementById('authModal').style.display = 'none';
@@ -91,7 +90,7 @@
         function loadProfileUI() {
             const badge = document.getElementById('profileBadge');
             badge.style.display = 'block';
-            badge.innerHTML = `<i class="fa-solid fa-user" style="color:#3b82f6;"></i> ${playerProfile.name} <span style="color:#94a3b8; font-size:10px;">${playerProfile.id}</span>`;
+            badge.innerHTML = `<i class="fa-solid fa-user" style="color:#3b82f6;"></i> ${playerProfile.name} <span style="color:#94a3b8; font-size:10px; margin-left:4px;">${playerProfile.id}</span>`;
         }
 
         function distributeProfile() {
@@ -107,20 +106,20 @@
             const profileBadge = document.getElementById('profileBadge');
             
             if (e.data.action === 'GAME_STARTED') {
-                activeRoomTab = e.data.tab;
+                isGameActive = true;
                 tabBar.classList.add('hide');
                 profileBadge.classList.add('hide');
             } else if (e.data.action === 'GAME_ENDED') {
-                activeRoomTab = null;
+                isGameActive = false;
                 tabBar.classList.remove('hide');
                 profileBadge.classList.remove('hide');
             }
         });
 
         function switchTab(index, color) {
-            if (activeRoomTab !== null && activeRoomTab !== index) {
+            if (isGameActive) {
                 const toast = document.getElementById('toast');
-                document.getElementById('toastMsg').textContent = `Active Match in progress. Quit first!`;
+                document.getElementById('toastMsg').textContent = `Match in progress. Please Quit match first!`;
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 3000);
                 return;
