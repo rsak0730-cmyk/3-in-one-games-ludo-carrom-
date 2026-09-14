@@ -3,43 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Carrom King Style Pro</title>
+    <title>SyncBeat Carrom Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.3/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: none; user-select: none; }
-        body, html { width: 100vw; height: 100vh; background: radial-gradient(circle, #581c87 0%, #3b0764 100%, #1e1b4b 100%); color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 10px 0; }
+        body, html { width: 100vw; height: 100vh; background: radial-gradient(circle, #581c87 0%, #3b0764 100%, #1e1b4b 100%); color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 8px 0; }
 
-        /* Top HUD */
+        /* Top HUD / Profiles */
         .hud-top { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; z-index: 10; }
-        .player-card { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); }
-        .player-avatar { width: 32px; height: 32px; border-radius: 50%; background: #facc15; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; color: #000; border: 2px solid #fff; }
+        .player-card { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); min-width: 120px; }
+        .player-avatar { width: 30px; height: 30px; border-radius: 50%; background: #facc15; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color: #000; border: 2px solid #fff; }
         .player-info { display: flex; flex-direction: column; }
-        .player-name { font-size: 12px; font-weight: 800; color: #f3f4f6; }
-        .player-score { font-size: 10px; color: #cbd5e1; }
-        .pot-display { display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 14px; border: 1px solid rgba(250, 204, 21, 0.4); font-size: 14px; font-weight: 900; color: #facc15; }
+        .player-name { font-size: 11px; font-weight: 900; color: #f3f4f6; }
+        .player-score { font-size: 10px; color: #facc15; font-weight: 800; }
+        
+        .turn-indicator { background: rgba(250, 204, 21, 0.2); border: 1px solid #facc15; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #facc15; text-align: center; }
 
-        /* Game Board Layout */
-        .board-container { position: relative; width: 92vw; height: 92vw; max-width: 380px; max-height: 380px; display: flex; align-items: center; justify-content: center; }
-        canvas { background: #deb887; border: 18px solid #5c3a21; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.2); width: 100%; height: 100%; }
+        /* Board Container */
+        .board-container { position: relative; width: 90vw; height: 90vw; max-width: 360px; max-height: 360px; display: flex; align-items: center; justify-content: center; }
+        canvas { background: #deb887; border: 16px solid #5c3a21; border-radius: 10px; box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.2); width: 100%; height: 100%; }
 
-        /* Bottom Striker Controls & HUD */
-        .hud-bottom { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0 16px; z-index: 10; }
-        .striker-control-bar { width: 85%; max-width: 320px; height: 36px; background: rgba(0,0,0,0.4); border-radius: 18px; border: 1px solid rgba(255,255,255,0.15); position: relative; display: flex; align-items: center; padding: 0 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
-        .control-knob { position: absolute; width: 28px; height: 28px; background: radial-gradient(circle, #facc15 0%, #ca8a04 100%); border-radius: 50%; top: 4px; left: calc(50% - 14px); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.5); border: 2px solid #fff; transition: transform 0.05s; }
-        .control-knob:active { transform: scale(1.1); }
+        /* Bottom Controls */
+        .hud-bottom { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 16px; z-index: 10; }
+        .striker-control-bar { width: 85%; max-width: 300px; height: 34px; background: rgba(0,0,0,0.5); border-radius: 17px; border: 1px solid rgba(255,255,255,0.2); position: relative; display: flex; align-items: center; padding: 0 12px; }
+        .control-knob { position: absolute; width: 26px; height: 26px; background: radial-gradient(circle, #facc15 0%, #ca8a04 100%); border-radius: 50%; top: 3px; left: calc(50% - 13px); cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
 
-        .action-buttons { width: 100%; display: flex; justify-content: space-between; align-items: center; }
-        .btn-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); border: none; border-radius: 50%; color: #000; font-size: 18px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 2px solid #fef08a; }
-        .btn-icon:active { transform: scale(0.92); }
+        .action-buttons { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
+        .btn-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); border: none; border-radius: 50%; color: #000; font-size: 16px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fef08a; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
 
-        /* Setup Overlay */
+        /* Setup Modal */
         #roomSetupModal { position: fixed; inset: 0; background: rgba(20, 5, 30, 0.95); backdrop-filter: blur(12px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .setup-card { background: #2e1065; width: 100%; max-width: 320px; border-radius: 24px; padding: 24px; border: 2px solid rgba(250, 204, 21, 0.4); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
         .input-glass { width: 100%; background: #1e1b4b; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 14px; font-size: 14px; color: #fff; outline: none; margin-bottom: 14px; text-align: center; font-weight: 700; }
-        .btn-glass { width: 100%; padding: 14px; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; border: none; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .btn-host { background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); color: #000; border: 1px solid #fef08a; }
-        .btn-join { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #fff; border: 1px solid #93c5fd; }
+        .btn-glass { width: 100%; padding: 14px; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; border: none; margin-bottom: 10px; text-transform: uppercase; color: #000; background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%); }
     </style>
 </head>
 <body>
@@ -48,18 +45,16 @@
         <div class="player-card">
             <div class="player-avatar" id="p1Avatar">P1</div>
             <div class="player-info">
-                <span class="player-name" id="p1Name">Jessica</span>
-                <span class="player-score"><i class="fa-solid fa-circle" style="color:#fff; font-size:8px;"></i> 9 Coins</span>
+                <span class="player-name" id="p1Name">Player 1</span>
+                <span class="player-score">Score: <span id="p1Score">0</span></span>
             </div>
         </div>
-        <div class="pot-display">
-            <i class="fa-solid fa-coins" style="color: #facc15;"></i> <span id="potAmount">1000</span>
-        </div>
+        <div class="turn-indicator" id="turnIndicator">Waiting Room</div>
         <div class="player-card">
             <div class="player-avatar" id="p2Avatar" style="background:#3b82f6; color:#fff;">P2</div>
             <div class="player-info">
-                <span class="player-name" id="p2Name">John</span>
-                <span class="player-score"><i class="fa-solid fa-circle" style="color:#0f172a; font-size:8px;"></i> 9 Coins</span>
+                <span class="player-name" id="p2Name">Waiting...</span>
+                <span class="player-score">Score: <span id="p2Score">0</span></span>
             </div>
         </div>
     </div>
@@ -73,25 +68,27 @@
             <div class="control-knob" id="controlKnob"></div>
         </div>
         <div class="action-buttons">
-            <button class="btn-icon" onclick="openChat()"><i class="fa-solid fa-comment-dots"></i></button>
+            <button class="btn-icon" onclick="alert('2-Player Multiplayer Connected')"><i class="fa-solid fa-signal"></i></button>
             <button class="btn-icon" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:#fff; border-color:#fca5a5;" onclick="leaveGame()"><i class="fa-solid fa-power-off"></i></button>
-            <button class="btn-icon" onclick="openSettings()"><i class="fa-solid fa-bars"></i></button>
+            <button class="btn-icon" onclick="alert('SyncBeat Carrom Pro Engine')"><i class="fa-solid fa-info"></i></button>
         </div>
     </div>
 
     <div id="roomSetupModal">
         <div class="setup-card">
-            <div style="font-size: 18px; font-weight: 900; color: #facc15; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">Carrom King Arena</div>
+            <div style="font-size: 18px; font-weight: 900; color: #facc15; margin-bottom: 16px; text-transform: uppercase;">Carrom Multiplayer</div>
             <input type="text" id="roomCodeInput" class="input-glass" placeholder="Enter Room Code">
-            <button class="btn-glass btn-host" onclick="joinGame('host')">Host Match</button>
-            <button class="btn-glass btn-join" onclick="joinGame('join')">Join Match</button>
+            <button class="btn-glass" onclick="joinGame('host')">Host Match</button>
+            <button class="btn-glass" style="background:linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color:#fff;" onclick="joinGame('join')">Join Match</button>
         </div>
     </div>
 
     <script>
         const socket = io('https://syncbeat-server-pvix.onrender.com');
         let activeCode = null;
-        let myProfile = null;
+        let myProfile = { name: 'Player', id: 'UID-GEN' };
+        let scores = { p1: 0, p2: 0 };
+        let currentTurn = 'p1';
 
         window.addEventListener('message', (e) => {
             if (e.data.type === 'AUTH') {
@@ -103,45 +100,51 @@
 
         function joinGame(type) {
             let code = document.getElementById('roomCodeInput').value.trim();
-            if (type === 'host') code = 'CK-' + Math.floor(1000 + Math.random() * 9000);
-            if (!code) return alert("Enter Room Code!");
+            if (type === 'host') {
+                code = 'CK-' + Math.floor(1000 + Math.random() * 9000);
+            } else {
+                if (!code) return alert("Enter Room Code!");
+            }
             activeCode = code;
-            socket.emit('join_room', code);
+            socket.emit('join_room', { room: code, name: myProfile.name });
             document.getElementById('roomSetupModal').style.display = 'none';
+            document.getElementById('turnIndicator').innerText = `Turn: Player 1`;
             window.parent.postMessage({ sender: 'syncbeat', action: 'ROOM_OPENED', tab: 4, code: code }, '*');
         }
+
+        socket.on('player_joined', (data) => {
+            document.getElementById('p2Name').innerText = data.name || 'Opponent';
+            document.getElementById('p2Avatar').innerText = (data.name || 'O').charAt(0).toUpperCase();
+        });
 
         function leaveGame() {
             window.parent.postMessage({ sender: 'syncbeat', action: 'ROOM_CLOSED' }, '*');
             location.reload();
         }
 
-        function openChat() { alert("Chat & Emojis active via room connection!"); }
-        function openSettings() { alert("SyncBeat Carrom Pro - Version 2.0"); }
-
-        // --- Realistic Carrom Canvas Physics Engine ---
+        // --- Canvas Carrom Engine ---
         const cvs = document.getElementById('carromCanvas');
         const ctx = cvs.getContext('2d');
         let coins = [];
 
         function initBoard() {
-            coins = [{ id: 'queen', c: '#dc2626', x: 200, y: 200, r: 10, vx: 0, vy: 0, mass: 1 }];
+            coins = [{ id: 'queen', c: '#dc2626', x: 200, y: 200, r: 9, vx: 0, vy: 0, mass: 1, active: true }];
             for(let i=0; i<6; i++) {
                 let angle = i * (Math.PI / 3);
-                coins.push({ id: `w1_${i}`, c: '#fdfbf7', x: 200 + Math.cos(angle)*21, y: 200 + Math.sin(angle)*21, r: 10, vx: 0, vy: 0, mass: 1 });
+                coins.push({ id: `w1_${i}`, c: '#fdfbf7', x: 200 + Math.cos(angle)*20, y: 200 + Math.sin(angle)*20, r: 9, vx: 0, vy: 0, mass: 1, active: true });
             }
             for(let i=0; i<12; i++) {
                 let angle = i * (Math.PI / 6);
                 let color = i % 2 === 0 ? '#1e293b' : '#fdfbf7';
-                coins.push({ id: `ring2_${i}`, c: color, x: 200 + Math.cos(angle)*42, y: 200 + Math.sin(angle)*42, r: 10, vx: 0, vy: 0, mass: 1 });
+                coins.push({ id: `ring2_${i}`, c: color, x: 200 + Math.cos(angle)*40, y: 200 + Math.sin(angle)*40, r: 9, vx: 0, vy: 0, mass: 1, active: true });
             }
-            coins.push({ id: 'striker', c: '#fffbeb', x: 200, y: 310, r: 14, vx: 0, vy: 0, mass: 1.8 });
+            coins.push({ id: 'striker', c: '#fffbeb', x: 200, y: 310, r: 13, vx: 0, vy: 0, mass: 1.8, active: true });
         }
         initBoard();
 
         let striker = coins.find(c => c.id === 'striker');
 
-        // Bottom Slider Positioning Logic
+        // Striker baseline positioning slider
         const sliderBar = document.getElementById('sliderBar');
         const knob = document.getElementById('controlKnob');
         let isSliding = false;
@@ -154,11 +157,11 @@
             const rect = sliderBar.getBoundingClientRect();
             let pos = (e.clientX - rect.left) / rect.width;
             pos = Math.max(0.1, Math.min(0.9, pos));
-            knob.style.left = `calc(${pos * 100}% - 14px)`;
-            striker.x = 120 + pos * 160; // Map slider across baseline
+            knob.style.left = `calc(${pos * 100}% - 13px)`;
+            striker.x = 120 + pos * 160;
         }
 
-        // Drag and Shoot Mechanic on Striker
+        // Drag & Shoot force calculation
         let isDragging = false;
         let startX, startY;
 
@@ -180,6 +183,7 @@
         });
 
         function resolveCollision(a, b) {
+            if (!a.active || !b.active) return;
             let dx = b.x - a.x; let dy = b.y - a.y; let dist = Math.hypot(dx, dy);
             if (dist < a.r + b.r) {
                 let overlap = (a.r + b.r - dist) / 2;
@@ -193,59 +197,91 @@
             }
         }
 
+        const pockets = [[22,22], [378,22], [22,378], [378,378]];
+
+        function checkPockets() {
+            coins.forEach(c => {
+                if (!c.active || c.id === 'striker') return;
+                pockets.forEach(p => {
+                    if (Math.hypot(c.x - p[0], c.y - p[1]) < 16) {
+                        c.active = false;
+                        c.vx = 0; c.vy = 0;
+                        if (currentTurn === 'p1') scores.p1 += 1; else scores.p2 += 1;
+                        document.getElementById('p1Score').innerText = scores.p1;
+                        document.getElementById('p2Score').innerText = scores.p2;
+                        socket.emit('coin_pocketed', { room: activeCode, coinId: c.id, scores, turn: currentTurn });
+                    }
+                });
+            });
+
+            // Reset Striker if pocketed
+            pockets.forEach(p => {
+                if (Math.hypot(striker.x - p[0], striker.y - p[1]) < 18) {
+                    striker.x = 200; striker.y = 310; striker.vx = 0; striker.vy = 0;
+                    currentTurn = currentTurn === 'p1' ? 'p2' : 'p1';
+                    document.getElementById('turnIndicator').innerText = `Turn: ${currentTurn === 'p1' ? document.getElementById('p1Name').innerText : document.getElementById('p2Name').innerText}`;
+                }
+            });
+        }
+
+        socket.on('update_score', (data) => {
+            scores = data.scores;
+            currentTurn = data.turn === 'p1' ? 'p2' : 'p1';
+            document.getElementById('p1Score').innerText = scores.p1;
+            document.getElementById('p2Score').innerText = scores.p2;
+            document.getElementById('turnIndicator').innerText = `Turn: ${currentTurn === 'p1' ? document.getElementById('p1Name').innerText : document.getElementById('p2Name').innerText}`;
+            let pocketedCoin = coins.find(c => c.id === data.coinId);
+            if (pocketedCoin) pocketedCoin.active = false;
+        });
+
         function updatePhysics() {
             let moved = false;
             for (let i = 0; i < coins.length; i++) {
                 let c = coins[i];
+                if (!c.active) continue;
                 if (Math.abs(c.vx) > 0.01 || Math.abs(c.vy) > 0.01) {
                     moved = true;
-                    c.vx *= 0.985; c.vy *= 0.985; // Friction
+                    c.vx *= 0.985; c.vy *= 0.985;
                     c.x += c.vx; c.y += c.vy;
-                    // Cushion Bounces
-                    if (c.x < c.r + 4 || c.x > cvs.width - c.r - 4) { c.vx *= -0.8; c.x = Math.max(c.r + 4, Math.min(cvs.width - c.r - 4, c.x)); }
-                    if (c.y < c.r + 4 || c.y > cvs.height - c.r - 4) { c.vy *= -0.8; c.y = Math.max(c.r + 4, Math.min(cvs.height - c.r - 4, c.y)); }
+                    if (c.x < c.r + 6 || c.x > cvs.width - c.r - 6) { c.vx *= -0.8; c.x = Math.max(c.r + 6, Math.min(cvs.width - c.r - 6, c.x)); }
+                    if (c.y < c.r + 6 || c.y > cvs.height - c.r - 6) { c.vy *= -0.8; c.y = Math.max(c.r + 6, Math.min(cvs.height - c.r - 6, c.y)); }
                 }
                 for (let j = i + 1; j < coins.length; j++) resolveCollision(c, coins[j]);
             }
+            checkPockets();
             if (moved && activeCode) socket.emit('sync_carrom', { room: activeCode, boardData: coins });
         }
 
         socket.on('receive_carrom', (boardData) => {
             boardData.forEach((netCoin) => {
                 let local = coins.find(c => c.id === netCoin.id);
-                if (local) { local.x = netCoin.x; local.y = netCoin.y; local.vx = netCoin.vx; local.vy = netCoin.vy; }
+                if (local) {
+                    local.x = netCoin.x; local.y = netCoin.y;
+                    local.vx = netCoin.vx; local.vy = netCoin.vy;
+                    local.active = netCoin.active;
+                }
             });
         });
 
         function drawBoardGraphics() {
             ctx.clearRect(0, 0, cvs.width, cvs.height);
 
-            // Carrom Center Circle & Flower Mandala Design
-            ctx.beginPath(); ctx.arc(200, 200, 42, 0, Math.PI*2); ctx.strokeStyle = 'rgba(92, 58, 33, 0.35)'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.beginPath(); ctx.arc(200, 200, 14, 0, Math.PI*2); ctx.fillStyle = 'rgba(92, 58, 33, 0.2)'; ctx.fill();
+            // Center Ring
+            ctx.beginPath(); ctx.arc(200, 200, 38, 0, Math.PI*2); ctx.strokeStyle = 'rgba(92, 58, 33, 0.35)'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.beginPath(); ctx.arc(200, 200, 12, 0, Math.PI*2); ctx.fillStyle = 'rgba(92, 58, 33, 0.2)'; ctx.fill();
 
-            // Corner Pockets (Black Circles with inner depth)
-            const pockets = [[18,18], [382,18], [18,382], [382,382]];
+            // Pockets
             pockets.forEach(p => {
-                ctx.beginPath(); ctx.arc(p[0], p[1], 18, 0, Math.PI*2); ctx.fillStyle = '#111'; ctx.fill();
-                ctx.strokeStyle = '#27272a'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.beginPath(); ctx.arc(p[0], p[1], 16, 0, Math.PI*2); ctx.fillStyle = '#050505'; ctx.fill();
+                ctx.strokeStyle = '#18181b'; ctx.lineWidth = 3; ctx.stroke();
             });
 
-            // Draw Base Lines & Circles
-            ctx.strokeStyle = 'rgba(220, 38, 38, 0.5)'; ctx.lineWidth = 1.5;
-            [ [200, 310, 32], [200, 90, 32], [90, 200, 32], [310, 200, 32] ].forEach(b => {
-                ctx.beginPath(); ctx.arc(b[0], b[1], b[2], 0, Math.PI*2); ctx.stroke();
-            });
-
-            // Draw Coins
+            // Active Coins
             coins.forEach(c => {
+                if (!c.active) return;
                 ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
                 ctx.fillStyle = c.c; ctx.fill();
                 ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1.5; ctx.stroke();
-                
-                // Inner coin ring for realism
-                ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.6, 0, Math.PI * 2);
-                ctx.strokeStyle = 'rgba(0,0,0,0.15);'; ctx.lineWidth = 1; ctx.stroke();
             });
         }
 
