@@ -48,6 +48,7 @@
         }
         .btn-main:active { transform: scale(0.95); }
         .btn-main.secondary { background: linear-gradient(to bottom, #60a5fa 0%, #1d4ed8 100%); color: #fff; border-color: #bfdbfe; }
+        .btn-main.danger { background: linear-gradient(to bottom, #f87171 0%, #b91c1c 100%); color: #fff; border-color: #fca5a5; }
 
         .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; text-align: left; }
         .setting-label { font-size: 14px; font-weight: 700; color: #e9d5ff; }
@@ -200,10 +201,12 @@
             <div class="rules-text">
                 <h3>Extra Turn Rules</h3>
                 If you pocket your own coin, you get another turn! Even if you accidentally pocket an opponent's coin on the same shot, as long as your own coin goes in, you keep your turn.
-                <h3>Queen Rules (Standard)</h3>
-                The Red Queen can be pocketed at any time. However, you must pocket one of your own coins on the same turn to "Cover" the Queen. If you fail, the Queen is returned to the center.
+                <h3>Striker Restrictions</h3>
+                You cannot aim or shoot if the striker overlaps another coin on the baseline. The striker will glow RED.
+                <h3>Queen Cover Rules</h3>
+                The Red Queen can be pocketed at any time. However, you must pocket one of your own coins on the same turn to "Cover" the Queen. If your turn ends without covering it, the Queen returns to the center.
                 <h3>Fouls</h3>
-                Pocketing the Striker is a foul. Your turn ends immediately, and you must return one of your previously pocketed coins to the board.
+                Pocketing the Striker ends your turn, and you must return one of your previously pocketed coins to the center.
             </div>
             <button class="btn-main" onclick="document.getElementById('rulesMenu').classList.add('hidden')">Got it!</button>
         </div>
@@ -309,11 +312,11 @@
                         osc.start(); osc.stop(this.ctx.currentTime + 0.05);
                     } else if (type === 'pocket') {
                         osc.type = 'sine';
-                        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-                        osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.15);
-                        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-                        osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+                        osc.frequency.setValueAtTime(750, this.ctx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.18);
+                        gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
+                        osc.start(); osc.stop(this.ctx.currentTime + 0.18);
                     } else if (type === 'shoot') {
                         osc.type = 'triangle';
                         osc.frequency.setValueAtTime(150, this.ctx.currentTime);
@@ -405,6 +408,7 @@
             cameraShake: 0,
             firstShotTaken: false,
             strikerFoul: false,
+            strikerInvalidPos: false, // Prevents aiming if overlapping
 
             initNewMatch() {
                 this.state = 'READY';
@@ -415,6 +419,7 @@
                 this.queenPocketedBy = null;
                 this.pocketedThisTurn = [];
                 this.strikerFoul = false;
+                this.strikerInvalidPos = false;
                 
                 this.coins = [{ id: 'queen', c: '#dc2626', x: 500, y: 500, r: Config.coinRadius, vx: 0, vy: 0, mass: 1, active: true, type: 'queen' }];
                 for (let i = 0; i < 12; i++) {
@@ -433,13 +438,44 @@
                 UIManager.toggleSlider(true);
             },
 
+            // Safe Spawn Placement Algorithm to avoid overlapping existing coins
+            getValidSpawnPos(radius) {
+                for (let i = 0; i < 50; i++) {
+                    let angle = Math.random() * Math.PI * 2;
+                    let dist = Math.random() * 80; // Keep within center mandala
+                    let sx = 500 + Math.cos(angle) * dist;
+                    let sy = 500 + Math.sin(angle) * dist;
+                    
+                    let overlap = false;
+                    for (let c of this.coins) {
+                        if (c.active && Math.hypot(c.x - sx, c.y - sy) < c.r + radius + 2) {
+                            overlap = true;
+                            break;
+                        }
+                    }
+                    if (!overlap) return {x: sx, y: sy};
+                }
+                return {x: 500, y: 500}; // Fallback
+            },
+
             resetStriker() {
                 this.striker.active = true;
                 this.striker.vx = 0; this.striker.vy = 0;
                 this.striker.y = this.turn === 1 ? Config.baseY_P1 : Config.baseY_P2;
                 this.striker.x = 500;
                 document.getElementById('controlKnob').style.left = `calc(50% - 19px)`;
+                this.checkStrikerOverlap();
                 UIManager.toggleSlider(true);
+            },
+
+            checkStrikerOverlap() {
+                this.strikerInvalidPos = false;
+                for (let c of this.coins) {
+                    if (c.active && Math.hypot(c.x - this.striker.x, c.y - this.striker.y) < c.r + this.striker.r) {
+                        this.strikerInvalidPos = true;
+                        break;
+                    }
+                }
             },
 
             isMoving() {
@@ -456,28 +492,37 @@
                 let keepTurn = false;
                 let myColor = this.turn === 1 ? Settings.p1Color : Settings.p2Color;
                 let oppColor = this.turn === 1 ? Settings.p2Color : Settings.p1Color;
+                
                 let pocketedOwn = false;
+                let pocketedQueenThisShot = false;
 
                 if (this.strikerFoul) {
                     UIManager.showToast("Foul! Striker Pocketed.");
                     
-                    // Return coins pocketed during the foul shot
+                    // Return coins pocketed during this foul shot to center algorithmically
                     this.pocketedThisTurn.forEach(pc => { 
-                        pc.active = true; pc.x = 500 + (Math.random()-0.5)*20; pc.y = 500 + (Math.random()-0.5)*20; 
+                        pc.active = true; 
+                        let pos = this.getValidSpawnPos(pc.r);
+                        pc.x = pos.x; pc.y = pos.y; 
                     });
                     
-                    // Apply Foul Penalty
+                    // Apply Penalty: Return one assigned coin from score to board
                     if (Settings.foulPenalty === 'return_coin') {
                         let score = this.turn === 1 ? this.p1Score : this.p2Score;
                         if (score > 0) {
                             let penaltyCoin = this.coins.find(c => !c.active && c.type === myColor);
-                            if (penaltyCoin) { penaltyCoin.active = true; penaltyCoin.x = 500 + (Math.random()-0.5)*20; penaltyCoin.y = 500 + (Math.random()-0.5)*20; }
+                            if (penaltyCoin) { 
+                                penaltyCoin.active = true; 
+                                let pos = this.getValidSpawnPos(penaltyCoin.r);
+                                penaltyCoin.x = pos.x; penaltyCoin.y = pos.y; 
+                            }
                             if (this.turn === 1) this.p1Score--; else this.p2Score--;
                         }
                     }
-                    keepTurn = false; // You always lose your turn on a foul
+                    keepTurn = false; // Turn ends on foul
                     this.strikerFoul = false;
                 } else {
+                    // Normal Shot Evaluation
                     this.pocketedThisTurn.forEach(pc => {
                         if (pc.type === myColor) {
                             if (this.turn === 1) this.p1Score++; else this.p2Score++;
@@ -487,30 +532,30 @@
                         } else if (pc.type === 'queen') {
                             this.queenStatus = 'PENDING_COVER';
                             this.queenPocketedBy = this.turn;
-                            UIManager.showToast("Queen Pocketed! Must cover.");
-                            pocketedOwn = true; // Pocketing queen grants continuation
+                            pocketedQueenThisShot = true;
+                            UIManager.showToast("Queen Pocketed! Must cover on same turn.");
                         }
                     });
 
-                    // Extra Turn Logic
-                    if (pocketedOwn) {
+                    // Extra Turn Rule: You keep your turn if you pocketed your own coin OR the Queen
+                    if (pocketedOwn || pocketedQueenThisShot) {
                         keepTurn = true;
-                        UIManager.showToast("Extra Turn!", 1500);
                     }
 
+                    // Strict Queen Cover Rule Evaluation
                     if (this.queenStatus === 'PENDING_COVER' && this.queenPocketedBy === this.turn) {
                         if (pocketedOwn) {
+                            // Covered successfully!
                             this.queenStatus = 'COVERED';
-                            UIManager.showToast("Queen successfully covered!");
-                        } else if (this.pocketedThisTurn.length > 0 && !pocketedOwn && !this.pocketedThisTurn.find(c=>c.type==='queen')) {
-                            let q = this.coins.find(c => c.type === 'queen');
-                            if (q) { q.active = true; q.x = 500; q.y = 500; }
-                            this.queenStatus = 'ON_BOARD'; this.queenPocketedBy = null;
-                            UIManager.showToast("Failed to cover Queen. Returned.");
+                            UIManager.showToast("Queen Successfully Covered!");
+                        } else if (!pocketedQueenThisShot && this.pocketedThisTurn.length > 0) {
+                            // If we missed our coin on the cover shot but pocketed opponent's coin
+                            // (If we pocketed nothing, keepTurn goes false and it gets handled at end of turn block)
                         }
                     }
                 }
 
+                // Check Win
                 let qSecured = !Settings.queenReq || this.queenStatus === 'COVERED';
                 if (this.p1Score >= 9 && (qSecured || this.queenPocketedBy === 1)) {
                     this.triggerWin(1); return;
@@ -521,12 +566,24 @@
                 this.pocketedThisTurn = [];
                 this.resetStriker();
                 
+                // End of turn procedures
                 if (!keepTurn) {
-                    this.turn = this.turn === 1 ? 2 : 1;
                     if (this.queenStatus === 'PENDING_COVER') {
+                        // Failed to cover before turn ended
                         let q = this.coins.find(c => c.type === 'queen');
-                        if (q) { q.active = true; q.x = 500; q.y = 500; }
-                        this.queenStatus = 'ON_BOARD'; this.queenPocketedBy = null;
+                        if (q) { 
+                            q.active = true; 
+                            let pos = this.getValidSpawnPos(q.r);
+                            q.x = pos.x; q.y = pos.y; 
+                        }
+                        this.queenStatus = 'ON_BOARD'; 
+                        this.queenPocketedBy = null;
+                        UIManager.showToast("Failed to cover Queen. Queen Returned.");
+                    }
+                    this.turn = this.turn === 1 ? 2 : 1;
+                } else {
+                    if (pocketedOwn && !pocketedQueenThisShot) {
+                        UIManager.showToast("Extra Turn!", 1000);
                     }
                 }
                 
@@ -559,19 +616,26 @@
                     pos = Math.max(0.05, Math.min(0.95, pos));
                     document.getElementById('controlKnob').style.left = `calc(${pos * 100}% - 19px)`;
                     GameState.striker.x = Config.baseMinX + pos * (Config.baseMaxX - Config.baseMinX);
+                    GameState.checkStrikerOverlap();
                 };
 
                 sliderBar.addEventListener('pointerdown', (e) => { 
-                    if (GameState.state === 'READY') { isSliding = true; updatePos(e.clientX); }
+                    if (GameState.state === 'READY') { isSliding = true; updatePos(e.clientX || e.touches[0].clientX); }
                 });
-                window.addEventListener('pointermove', (e) => { if (isSliding) updatePos(e.clientX); });
+                window.addEventListener('pointermove', (e) => { if (isSliding) updatePos(e.clientX || e.touches[0].clientX); });
                 window.addEventListener('pointerup', () => isSliding = false);
 
                 cvs.addEventListener('pointerdown', (e) => {
                     if (GameState.state !== 'READY') return;
+                    
+                    if (GameState.strikerInvalidPos) {
+                        UIManager.showToast("Invalid Striker Position!");
+                        return;
+                    }
+
                     const rect = cvs.getBoundingClientRect();
-                    const clickX = (e.clientX - rect.left) * (Config.boardSize / rect.width);
-                    const clickY = (e.clientY - rect.top) * (Config.boardSize / rect.height);
+                    const clickX = ((e.clientX || e.touches[0].clientX) - rect.left) * (Config.boardSize / rect.width);
+                    const clickY = ((e.clientY || e.touches[0].clientY) - rect.top) * (Config.boardSize / rect.height);
                     
                     if (Math.hypot(clickX - GameState.striker.x, clickY - GameState.striker.y) < GameState.striker.r * 2) {
                         AudioSystem.init();
@@ -587,8 +651,8 @@
                 cvs.addEventListener('pointermove', (e) => {
                     if (!this.isDragging) return;
                     const rect = cvs.getBoundingClientRect();
-                    this.currX = (e.clientX - rect.left) * (Config.boardSize / rect.width);
-                    this.currY = (e.clientY - rect.top) * (Config.boardSize / rect.height);
+                    this.currX = ((e.clientX || e.touches[0].clientX) - rect.left) * (Config.boardSize / rect.width);
+                    this.currY = ((e.clientY || e.touches[0].clientY) - rect.top) * (Config.boardSize / rect.height);
                 });
 
                 const endDrag = (e) => {
@@ -636,18 +700,17 @@
                         e.vx *= Config.friction; e.vy *= Config.friction;
                         e.x += e.vx; e.y += e.vy;
                         
-                        // Pocket Entry detection logic (allows coin to fall into hole BEFORE wall bounce)
                         let inPocketZone = false;
                         for (let p of POCKETS) {
-                            if (Math.hypot(e.x - p[0], e.y - p[1]) < Config.pocketRadius) {
+                            if (Math.hypot(e.x - p[0], e.y - p[1]) < Config.pocketRadius - 5) {
                                 e.active = false; e.vx = 0; e.vy = 0;
                                 AudioSystem.play('pocket');
                                 PhysicsSystem.spawnParticles(p[0], p[1], e.type || 'striker');
                                 if (e.id === 'striker') GameState.strikerFoul = true;
                                 else GameState.pocketedThisTurn.push(e);
                                 inPocketZone = true; break;
-                            } else if (Math.hypot(e.x - p[0], e.y - p[1]) < Config.pocketRadius + e.r) {
-                                inPocketZone = true; // Passing over the pocket lip, disable wall bounce
+                            } else if (Math.hypot(e.x - p[0], e.y - p[1]) < Config.pocketRadius + e.r - 5) {
+                                inPocketZone = true; 
                                 break;
                             }
                         }
@@ -658,11 +721,9 @@
                             if (e.x < min_bound || e.x > max_bound) { e.vx *= -Config.wallRestitution; e.x = Math.max(min_bound, Math.min(max_bound, e.x)); AudioSystem.play('hit', Math.abs(e.vx)); }
                             if (e.y < min_bound || e.y > max_bound) { e.vy *= -Config.wallRestitution; e.y = Math.max(min_bound, Math.min(max_bound, e.y)); AudioSystem.play('hit', Math.abs(e.vy)); }
                         } else {
-                            // Absolute outer bound clamping to prevent escaping physics
                             if (e.x < e.r || e.x > Config.boardSize - e.r) e.vx *= -0.5;
                             if (e.y < e.r || e.y > Config.boardSize - e.r) e.vy *= -0.5;
                         }
-
                     } else {
                         e.vx = 0; e.vy = 0;
                     }
@@ -698,7 +759,7 @@
 
             spawnParticles(x, y, type) {
                 let color = type === 'white' ? '#fff' : type === 'queen' ? '#ef4444' : '#64748b';
-                for(let i=0; i<10; i++) {
+                for(let i=0; i<8; i++) {
                     GameState.particles.push({ x: x, y: y, vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15, life: 1, c: color });
                 }
             },
@@ -744,18 +805,13 @@
                 ctx.beginPath(); ctx.moveTo(cw, Config.boardSize); ctx.arcTo(0,Config.boardSize,0,Config.boardSize-cw,cr); ctx.lineTo(0,Config.boardSize-cw); ctx.lineTo(cw, Config.boardSize-cw); ctx.closePath(); ctx.fill(); 
 
                 // 3. Inner Wood Board Area
-                ctx.fillStyle = '#dcb589';
+                let bgGrad = ctx.createRadialGradient(500, 500, 100, 500, 500, 800);
+                bgGrad.addColorStop(0, '#e6c29a'); 
+                bgGrad.addColorStop(1, '#c49a6c'); 
+                ctx.fillStyle = bgGrad;
                 ctx.beginPath(); ctx.roundRect(Config.innerBoardStart, Config.innerBoardStart, Config.innerBoardSize, Config.innerBoardSize, 20); ctx.fill();
 
-                // 4. Black Pocket Cutouts (Drawn precisely over corners & inner board edges)
-                const pockets = [[Config.pocketOffset, Config.pocketOffset], [Config.boardSize-Config.pocketOffset, Config.pocketOffset], [Config.pocketOffset, Config.boardSize-Config.pocketOffset], [Config.boardSize-Config.pocketOffset, Config.boardSize-Config.pocketOffset]];
-                ctx.fillStyle = '#0a0a0a';
-                pockets.forEach(p => {
-                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius, 0, Math.PI*2); ctx.fill();
-                    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3; ctx.stroke();
-                });
-
-                // 5. Decorative Markings & Lines
+                // 4. Markings & Lines (DRAWN FIRST so holes cut over them)
                 ctx.strokeStyle = 'rgba(139, 69, 19, 0.4)'; 
                 ctx.lineWidth = 2;
                 ctx.strokeRect(Config.innerBoardStart+20, Config.innerBoardStart+20, Config.innerBoardSize-40, Config.innerBoardSize-40);
@@ -786,16 +842,33 @@
                 drawBadge(Config.baseMinX, Config.baseY_P1); drawBadge(Config.baseMaxX, Config.baseY_P1);
                 drawBadge(Config.baseMinX, Config.baseY_P2); drawBadge(Config.baseMaxX, Config.baseY_P2);
 
+                // 5. POCKETS (Black Holes Cut over Markings)
+                const pockets = [
+                    [Config.pocketOffset, Config.pocketOffset], 
+                    [Config.boardSize-Config.pocketOffset, Config.pocketOffset], 
+                    [Config.pocketOffset, Config.boardSize-Config.pocketOffset], 
+                    [Config.boardSize-Config.pocketOffset, Config.boardSize-Config.pocketOffset]
+                ];
+                pockets.forEach(p => {
+                    // Gold ring
+                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius + 3, 0, Math.PI*2);
+                    ctx.fillStyle = '#ca8a04'; ctx.fill();
+                    // Black hole
+                    ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius, 0, Math.PI*2);
+                    ctx.fillStyle = '#0a0a0a'; ctx.fill();
+                    ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 4; ctx.stroke();
+                });
+
                 // 6. Draw 2D Flat Coins & Striker
                 const drawPiece = (c, isStriker = false) => {
-                    // Soft Drop Shadow
+                    // Shadow
                     ctx.beginPath(); ctx.arc(c.x + 3, c.y + 3, c.r, 0, Math.PI * 2);
                     ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill(); 
 
                     if (isStriker) {
                         ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-                        ctx.fillStyle = '#fef08a'; ctx.fill();
-                        ctx.strokeStyle = '#3e200c'; ctx.lineWidth = 2; ctx.stroke();
+                        ctx.fillStyle = '#fef3c7'; ctx.fill();
+                        ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2; ctx.stroke();
                         
                         ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.75, 0, Math.PI * 2);
                         ctx.strokeStyle = '#b91c1c'; ctx.lineWidth = 3; ctx.stroke();
@@ -805,6 +878,12 @@
                         
                         ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.18, 0, Math.PI * 2);
                         ctx.fillStyle = '#b91c1c'; ctx.fill();
+
+                        // Invalid Red Glow Logic
+                        if (GameState.state === 'READY' && GameState.strikerInvalidPos) {
+                            ctx.beginPath(); ctx.arc(c.x, c.y, c.r + 5, 0, Math.PI * 2);
+                            ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)'; ctx.lineWidth = 4; ctx.stroke();
+                        }
                     } else {
                         let baseColor, rimColor, engraveColor;
                         if (c.type === 'queen') { baseColor = '#ef4444'; rimColor = '#7f1d1d'; engraveColor = '#b91c1c'; } 
