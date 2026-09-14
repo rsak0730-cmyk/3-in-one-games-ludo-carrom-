@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Carrom Pool Pro - Authentic Physics & Textures</title>
+    <title>Carrom Pool Pro - Authentic 2D</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -18,28 +18,37 @@
         
         body, html { 
             width: 100vw; height: 100vh; 
-            background: radial-gradient(circle at top, #4a0e4e 0%, #1e0524 100%); 
+            background: #170b2b; 
             color: var(--text-light); 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             overflow: hidden; display: flex; flex-direction: column; 
-            justify-content: space-between; align-items: center; padding: 10px 0; 
+            justify-content: space-between; align-items: center; padding: 15px 0; 
         }
 
+        /* Overlays (Menus) */
         .overlay { 
             position: fixed; inset: 0; background: rgba(10, 2, 15, 0.95); backdrop-filter: blur(8px); 
             z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 20px; transition: opacity 0.3s ease; 
+            padding: 15px; transition: opacity 0.3s ease; 
         }
         .overlay.hidden { opacity: 0; pointer-events: none; }
         
         .menu-card { 
-            background: #370b3b; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto;
+            position: relative; background: #370b3b; width: 100%; max-width: 400px; max-height: 92vh; overflow-y: auto;
             border-radius: 20px; padding: 30px 20px; border: 2px solid var(--gold-trim); 
             text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9); 
         }
         
         .menu-title { font-size: 26px; font-weight: 900; color: var(--gold-trim); margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 4px 15px rgba(250, 204, 21, 0.5); }
         
+        .back-btn {
+            position: absolute; top: 15px; left: 15px; background: rgba(250, 204, 21, 0.15);
+            border: 2px solid var(--gold-trim); color: var(--gold-trim); width: 36px; height: 36px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; cursor: pointer; transition: 0.2s; z-index: 10;
+        }
+        .back-btn:active { transform: scale(0.9); background: var(--gold-trim); color: #000; }
+
         .btn-main { 
             width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 900; 
             cursor: pointer; border: none; margin-bottom: 12px; text-transform: uppercase; 
@@ -50,7 +59,6 @@
         .btn-main.secondary { background: linear-gradient(to bottom, #60a5fa 0%, #1d4ed8 100%); color: #fff; border-color: #bfdbfe; }
         .btn-main.danger { background: linear-gradient(to bottom, #f87171 0%, #b91c1c 100%); color: #fff; border-color: #fca5a5; }
 
-        /* Settings Form */
         .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; text-align: left; }
         .setting-label { font-size: 13px; font-weight: 700; color: #e9d5ff; flex: 1; }
         .setting-select, .setting-input { width: 55%; padding: 6px; border-radius: 8px; border: 1px solid var(--gold-trim); background: #1e0524; color: #fff; font-weight: bold; outline: none; }
@@ -60,17 +68,22 @@
         .rules-text { text-align: left; font-size: 12px; line-height: 1.5; color: #e9d5ff; margin-bottom: 20px; }
         .rules-text h3 { color: var(--gold-trim); margin-top: 10px; margin-bottom: 5px; font-size: 14px; }
 
-        /* Inventory Tabs */
-        .inventory-modal { width: 100%; max-width: 800px; height: 85vh; display: flex; flex-direction: row; padding: 0; overflow: hidden; }
-        .inv-sidebar { width: 30%; background: rgba(0,0,0,0.4); border-right: 2px solid var(--gold-trim); display: flex; flex-direction: column; overflow-y: auto; }
-        .inv-tab { padding: 18px 10px; font-size: 12px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; cursor: pointer; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
+        /* Inventory System Restructured */
+        .inventory-modal { width: 100%; max-width: 800px; height: 85vh; padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .inv-header { display: flex; align-items: center; padding: 12px 15px; background: rgba(0,0,0,0.6); border-bottom: 2px solid var(--gold-trim); }
+        .inv-header .back-btn { position: static; margin-right: 15px; width: 32px; height: 32px; }
+        .inv-header .title { font-size: 18px; font-weight: 900; color: var(--gold-trim); letter-spacing: 1px; }
+        
+        .inv-body { display: flex; flex-direction: row; flex: 1; overflow: hidden; }
+        .inv-sidebar { width: 30%; background: rgba(0,0,0,0.4); border-right: 2px solid var(--gold-trim); overflow-y: auto; }
+        .inv-tab { padding: 18px 10px; font-size: 11px; font-weight: 900; color: #cbd5e1; text-transform: uppercase; cursor: pointer; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
         .inv-tab:hover { background: rgba(255,255,255,0.05); }
         .inv-tab.active { background: linear-gradient(90deg, rgba(250,204,21,0.2) 0%, transparent 100%); color: var(--gold-trim); border-left: 4px solid var(--gold-trim); }
-        .inv-content { width: 70%; padding: 20px; overflow-y: auto; display: none; }
+        
+        .inv-content { width: 70%; padding: 15px; overflow-y: auto; display: none; }
         .inv-content.active { display: block; }
-        .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; }
+        .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
         .item-card { background: #1e0524; border: 2px solid #334155; border-radius: 12px; padding: 15px 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; transition: 0.2s; position: relative; overflow: hidden; }
-        .item-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .item-card.equipped { border-color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.4); }
         .item-card.equipped::after { content: 'EQUIPPED'; position: absolute; top: 0; width: 100%; background: #4ade80; color: #000; font-size: 9px; font-weight: 900; padding: 2px 0; }
         .item-preview { width: 50px; height: 50px; border-radius: 50%; margin-bottom: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.6); }
@@ -78,10 +91,9 @@
         .item-rarity { font-size: 8px; font-weight: 900; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
 
         .rarity-COMMON { border-color: #94a3b8; color: #94a3b8; }
-        .rarity-EPIC { border-color: #a855f7; color: #a855f7; box-shadow: 0 0 10px rgba(168,85,247,0.3); }
-        .rarity-LEGENDARY { border-color: #facc15; color: #facc15; box-shadow: 0 0 15px rgba(250,204,21,0.4); }
-        .rarity-MYTHIC { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.6); animation: pulse-mythic 2s infinite; }
-        @keyframes pulse-mythic { 0% { box-shadow: 0 0 5px #ef4444; } 50% { box-shadow: 0 0 20px #ef4444; } 100% { box-shadow: 0 0 5px #ef4444; } }
+        .rarity-EPIC { border-color: #a855f7; color: #a855f7; }
+        .rarity-LEGENDARY { border-color: #facc15; color: #facc15; }
+        .rarity-MYTHIC { border-color: #ef4444; color: #ef4444; }
 
         /* HUD - Top */
         .hud-top { width: 100%; max-width: 480px; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.5s; }
@@ -131,8 +143,7 @@
         .btn-icon { width: 44px; height: 44px; background: radial-gradient(circle at 30% 30%, var(--btn-grad-1) 0%, var(--btn-grad-2) 100%); border: 2px solid #fff; border-radius: 50%; color: #451a03; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 12px rgba(250, 204, 21, 0.4), 0 6px 12px rgba(0,0,0,0.5); transition: transform 0.1s; }
         .btn-icon:active { transform: scale(0.9); }
 
-        /* Toasts */
-        #toast { position: fixed; top: 110px; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(55, 11, 59, 0.95); border: 2px solid var(--gold-trim); color: var(--btn-grad-1); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 900; z-index: 2000; opacity: 0; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.7); pointer-events: none; text-align: center; }
+        #toast { position: fixed; top: 110px; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(55, 11, 59, 0.95); border: 2px solid var(--gold-trim); color: var(--btn-grad-1); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 900; z-index: 2000; opacity: 0; transition: all 0.3s; pointer-events: none; text-align: center; }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
@@ -141,9 +152,9 @@
     <!-- Main Menu -->
     <div class="overlay" id="mainMenu">
         <div class="menu-card">
-            <div class="menu-title">Carrom Pro</div>
-            <button class="btn-main" onclick="GameApp.startMatch()">Play Local 2-Player</button>
-            <button class="btn-main secondary" onclick="GameApp.openInventory()">Assets & Cosmetics</button>
+            <div class="menu-title">Carrom Pool Pro</div>
+            <button class="btn-main" onclick="GameApp.startMatch('local')">Play Local 2-Player</button>
+            <button class="btn-main secondary" onclick="GameApp.openInventory()">Assets & Skins</button>
             <button class="btn-main secondary" onclick="GameApp.openSettings()">Match Settings</button>
             <button class="btn-main secondary" onclick="GameApp.openRules()">How to Play</button>
         </div>
@@ -152,36 +163,32 @@
     <!-- Inventory / Cosmetics Menu -->
     <div class="overlay hidden" id="inventoryMenu">
         <div class="menu-card inventory-modal">
-            <div class="inv-sidebar">
-                <div class="inv-tab active" onclick="InventoryUI.switchTab('coins')">Coins</div>
-                <div class="inv-tab" onclick="InventoryUI.switchTab('strikers')">Strikers</div>
-                <div class="inv-tab" onclick="InventoryUI.switchTab('boards')">Boards</div>
-                <div class="inv-tab" onclick="InventoryUI.switchTab('pockets')">Pockets</div>
-                <div style="margin-top: auto; padding: 15px;">
-                    <button class="btn-main" style="padding: 10px; font-size: 12px; margin: 0;" onclick="GameApp.closeInventory()">Apply & Close</button>
+            <div class="inv-header">
+                <button class="back-btn" onclick="GameApp.closeInventory()"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="title">INVENTORY</div>
+            </div>
+            <div class="inv-body">
+                <div class="inv-sidebar">
+                    <div class="inv-tab active" onclick="InventoryUI.switchTab('coins')">Coins</div>
+                    <div class="inv-tab" onclick="InventoryUI.switchTab('strikers')">Strikers</div>
+                    <div class="inv-tab" onclick="InventoryUI.switchTab('boards')">Boards</div>
+                    <div class="inv-tab" onclick="InventoryUI.switchTab('pockets')">Pockets</div>
                 </div>
-            </div>
-            
-            <div class="inv-content active" id="tab_coins">
-                <div class="item-grid" id="grid_coins"></div>
-            </div>
-            <div class="inv-content" id="tab_strikers">
-                <div class="item-grid" id="grid_strikers"></div>
-            </div>
-            <div class="inv-content" id="tab_boards">
-                <div class="item-grid" id="grid_boards"></div>
-            </div>
-            <div class="inv-content" id="tab_pockets">
-                <div class="item-grid" id="grid_pockets"></div>
+                <div class="inv-content active" id="tab_coins"><div class="item-grid" id="grid_coins"></div></div>
+                <div class="inv-content" id="tab_strikers"><div class="item-grid" id="grid_strikers"></div></div>
+                <div class="inv-content" id="tab_boards"><div class="item-grid" id="grid_boards"></div></div>
+                <div class="inv-content" id="tab_pockets"><div class="item-grid" id="grid_pockets"></div></div>
             </div>
         </div>
     </div>
 
     <!-- Settings Menu -->
     <div class="overlay hidden" id="settingsMenu">
-        <div class="menu-card">
-            <div class="menu-title" style="font-size:22px;">Settings</div>
-            <div class="settings-warning" id="settingsLockWarning" style="display:none;">Some rules are locked during an active match.</div>
+        <div class="menu-card" style="padding-top: 50px;">
+            <button class="back-btn" onclick="GameApp.closeSettings()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="menu-title" style="font-size:20px; margin-top:-10px;">Settings</div>
+            
+            <div class="settings-warning" id="settingsLockWarning" style="display:none;">Rules are locked during an active match.</div>
             
             <div class="setting-row">
                 <span class="setting-label">Player 1 Name</span>
@@ -192,7 +199,7 @@
                 <input type="text" id="optP2Name" class="setting-input" value="Player 2">
             </div>
             <div class="setting-row">
-                <span class="setting-label">Coin Assignment</span>
+                <span class="setting-label">Coin Colors</span>
                 <select class="setting-select locked-in-game" id="optColors">
                     <option value="random">Randomize</option>
                     <option value="p1_white">P1 White / P2 Black</option>
@@ -219,15 +226,15 @@
                     <option value="false">Off</option>
                 </select>
             </div>
-
-            <button class="btn-main" style="margin-top:10px;" onclick="GameApp.closeSettings()">Save & Close</button>
+            <button class="btn-main" style="margin-top:10px;" onclick="GameApp.closeSettings()">Save Options</button>
         </div>
     </div>
 
     <!-- Rules Menu -->
     <div class="overlay hidden" id="rulesMenu">
-        <div class="menu-card" style="max-width: 450px;">
-            <div class="menu-title" style="font-size:22px;">How to Play</div>
+        <div class="menu-card" style="max-width: 450px; padding-top: 50px;">
+            <button class="back-btn" onclick="document.getElementById('rulesMenu').classList.add('hidden')"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="menu-title" style="font-size:20px; margin-top:-10px;">How to Play</div>
             <div class="rules-text">
                 <h3>Directional Play</h3>
                 The board automatically rotates so the active player always shoots from the bottom.
@@ -239,14 +246,14 @@
                 Pocketing the Striker is a foul. Your turn ends and you return one pocketed coin. 
                 <br><br><b>Striker Placement:</b> You cannot aim or shoot if the striker overlaps another coin on the baseline (it will glow Red).
             </div>
-            <button class="btn-main" onclick="document.getElementById('rulesMenu').classList.add('hidden')">Got it!</button>
         </div>
     </div>
 
     <!-- Pause Menu -->
     <div class="overlay hidden" id="pauseMenu">
-        <div class="menu-card">
-            <div class="menu-title">Paused</div>
+        <div class="menu-card" style="padding-top: 50px;">
+            <button class="back-btn" onclick="GameApp.resumeMatch()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="menu-title" style="margin-top:-10px;">Paused</div>
             <button class="btn-main" onclick="GameApp.resumeMatch()">Resume</button>
             <button class="btn-main secondary" onclick="GameApp.openSettings()">Settings</button>
             <button class="btn-main danger" onclick="GameApp.quitMatch()">Quit Match</button>
@@ -259,7 +266,7 @@
             <div style="font-size: 55px; color: var(--gold-trim); margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(250,204,21,0.5));">🏆</div>
             <h2 id="winTitle" style="font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 10px;">Player 1 Wins!</h2>
             <p id="winDesc" style="font-size: 13px; color: #e9d5ff; margin-bottom: 25px;">All personal coins and Queen cleared.</p>
-            <button class="btn-main" onclick="GameApp.startMatch()">Play Again</button>
+            <button class="btn-main" onclick="GameApp.startMatch('local')">Play Again</button>
             <button class="btn-main secondary" onclick="GameApp.quitMatch()">Main Menu</button>
         </div>
     </div>
@@ -306,35 +313,31 @@
 
     <!-- GAME SCRIPTS -->
     <script>
-        // --- 1. ASSET LIBRARY ---
-        const RarityColors = {
-            COMMON: '#94a3b8', UNCOMMON: '#4ade80', RARE: '#3b82f6', 
-            EPIC: '#a855f7', LEGENDARY: '#facc15', MYTHIC: '#ef4444'
-        };
+        // --- 1. ASSET LIBRARY (Strictly 2D Flat Colors) ---
+        const RarityColors = { COMMON: '#94a3b8', UNCOMMON: '#4ade80', RARE: '#3b82f6', EPIC: '#a855f7', LEGENDARY: '#facc15', MYTHIC: '#ef4444' };
 
         const AssetLibrary = {
             coins: [
-                { id: 'c_classic', name: 'Classic Wood', rarity: 'COMMON', colors: { white: ['#fdfbf7', '#cbd5e1', '#e2e8f0'], black: ['#1e293b', '#020617', '#0f172a'], queen: ['#ef4444', '#7f1d1d', '#b91c1c'] }, glow: null },
-                { id: 'c_gold', name: 'Luxury Gold', rarity: 'LEGENDARY', colors: { white: ['#fffbeb', '#b45309', '#fde047'], black: ['#3e1f0b', '#000000', '#1c0f05'], queen: ['#fef08a', '#991b1b', '#f59e0b'] }, glow: null },
-                { id: 'c_neon', name: 'Neon Cyber', rarity: 'EPIC', colors: { white: ['#eff6ff', '#1e3a8a', '#3b82f6'], black: ['#0f172a', '#020617', '#06b6d4'], queen: ['#fecaca', '#7f1d1d', '#ef4444'] }, glow: '#c026d3' },
-                { id: 'c_fire', name: 'Inferno', rarity: 'MYTHIC', colors: { white: ['#fff7ed', '#c2410c', '#ea580c'], black: ['#2a0a0a', '#000000', '#450a0a'], queen: ['#fef08a', '#991b1b', '#dc2626'] }, glow: '#f97316' },
-                { id: 'c_ice', name: 'Frostbite', rarity: 'RARE', colors: { white: ['#f0fdfa', '#0f766e', '#14b8a6'], black: ['#042f2e', '#020617', '#115e59'], queen: ['#e0f2fe', '#0369a1', '#0ea5e9'] }, glow: '#2dd4bf' }
+                { id: 'c_classic', name: 'Classic 2D', rarity: 'COMMON', colors: { white: {base: '#f8fafc', rim: '#94a3b8', inner: '#e2e8f0'}, black: {base: '#1e293b', rim: '#020617', inner: '#334155'}, queen: {base: '#ef4444', rim: '#7f1d1d', inner: '#b91c1c'} } },
+                { id: 'c_gold', name: 'Luxury Gold', rarity: 'LEGENDARY', colors: { white: {base: '#fef08a', rim: '#b45309', inner: '#fde047'}, black: {base: '#292524', rim: '#000000', inner: '#44403c'}, queen: {base: '#f59e0b', rim: '#78350f', inner: '#d97706'} } },
+                { id: 'c_neon', name: 'Neon Cyber', rarity: 'EPIC', colors: { white: {base: '#eff6ff', rim: '#3b82f6', inner: '#93c5fd'}, black: {base: '#0f172a', rim: '#06b6d4', inner: '#22d3ee'}, queen: {base: '#fecaca', rim: '#e11d48', inner: '#fb7185'} } },
+                { id: 'c_fire', name: 'Inferno', rarity: 'MYTHIC', colors: { white: {base: '#ffedd5', rim: '#ea580c', inner: '#fdba74'}, black: {base: '#2a0a0a', rim: '#000000', inner: '#450a0a'}, queen: {base: '#fca5a5', rim: '#991b1b', inner: '#ef4444'} } }
             ],
             strikers: [
-                { id: 's_classic', name: 'Tournament White', rarity: 'COMMON', bg: ['#fef3c7', '#d1d5db'], rim: '#b45309', center: '#b91c1c' },
-                { id: 's_gold', name: 'Royal Gold', rarity: 'LEGENDARY', bg: ['#fef08a', '#ca8a04'], rim: '#713f12', center: '#ffffff' },
-                { id: 's_carbon', name: 'Carbon Fiber', rarity: 'EPIC', bg: ['#334155', '#0f172a'], rim: '#020617', center: '#3b82f6' },
-                { id: 's_galaxy', name: 'Cosmic Void', rarity: 'MYTHIC', bg: ['#2e1065', '#000000'], rim: '#a855f7', center: '#e879f9', glow: '#d946ef' }
+                { id: 's_classic', name: 'Classic Star', rarity: 'COMMON', bg: '#fef3c7', rim: '#b45309', center: '#fff', accent: '#b91c1c' },
+                { id: 's_gold', name: 'Royal Gold', rarity: 'LEGENDARY', bg: '#facc15', rim: '#713f12', center: '#fff', accent: '#a16207' },
+                { id: 's_carbon', name: 'Carbon Fiber', rarity: 'EPIC', bg: '#334155', rim: '#020617', center: '#1e293b', accent: '#3b82f6' },
+                { id: 's_galaxy', name: 'Cosmic Void', rarity: 'MYTHIC', bg: '#2e1065', rim: '#000000', center: '#4c1d95', accent: '#d946ef' }
             ],
             boards: [
-                { id: 'b_classic', name: 'Standard Maple', rarity: 'COMMON', surface: ['#e6c29a', '#c49a6c'], frame: '#4a2511', lines: 'rgba(139,69,19,0.4)' },
-                { id: 'b_marble', name: 'Black Marble', rarity: 'EPIC', surface: ['#334155', '#0f172a'], frame: '#020617', lines: 'rgba(255,255,255,0.2)' },
-                { id: 'b_neon', name: 'Arcade Grid', rarity: 'MYTHIC', surface: ['#170b2b', '#090414'], frame: '#000000', lines: '#a855f7' }
+                { id: 'b_classic', name: 'Standard Maple', rarity: 'COMMON', surface: '#e6c29a', frame: '#4a2511', lines: 'rgba(139,69,19,0.5)', accent: '#dc2626' },
+                { id: 'b_marble', name: 'Black Marble', rarity: 'EPIC', surface: '#1e293b', frame: '#020617', lines: 'rgba(255,255,255,0.3)', accent: '#3b82f6' },
+                { id: 'b_neon', name: 'Arcade Grid', rarity: 'MYTHIC', surface: '#170b2b', frame: '#000000', lines: '#a855f7', accent: '#06b6d4' }
             ],
             pockets: [
-                { id: 'p_classic', name: 'Classic Gold', rarity: 'COMMON', rim: '#ca8a04', hole: '#0a0a0a' },
+                { id: 'p_classic', name: 'Classic Gold', rarity: 'COMMON', rim: '#ca8a04', hole: '#050505' },
                 { id: 'p_neon', name: 'Plasma Ring', rarity: 'EPIC', rim: '#06b6d4', hole: '#000000' },
-                { id: 'p_portal', name: 'Void Portal', rarity: 'MYTHIC', rim: '#a855f7', hole: '#2e1065' }
+                { id: 'p_portal', name: 'Void Portal', rarity: 'MYTHIC', rim: '#a855f7', hole: '#050505' }
             ]
         };
 
@@ -366,9 +369,9 @@
                 grid.innerHTML = '';
                 items.forEach(item => {
                     let style = '';
-                    if (category === 'coins') style = `background: ${item.colors.white[0]}; border: 2px solid ${item.colors.white[1]};`;
-                    else if (category === 'strikers') style = `background: ${item.bg[0]}; border: 3px solid ${item.rim};`;
-                    else if (category === 'boards') style = `background: radial-gradient(circle, ${item.surface[0]}, ${item.surface[1]}); border: 4px solid ${item.frame}; border-radius: 8px;`;
+                    if (category === 'coins') style = `background: ${item.colors.white.base}; border: 2px solid ${item.colors.white.rim};`;
+                    else if (category === 'strikers') style = `background: ${item.bg}; border: 3px solid ${item.rim};`;
+                    else if (category === 'boards') style = `background: ${item.surface}; border: 4px solid ${item.frame}; border-radius: 8px;`;
                     else if (category === 'pockets') style = `background: ${item.hole}; border: 4px solid ${item.rim};`;
 
                     const isEq = item.id === equippedId ? 'equipped' : '';
@@ -409,7 +412,8 @@
             boardSize: 1000, friction: 0.985, wallRestitution: 0.75,
             coinRadius: 26, strikerRadius: 36, pocketRadius: 55, pocketOffset: 65,
             innerBoardStart: 60, innerBoardSize: 880,
-            baseY: 800, // Always 800 locally because we rotate the board for P2
+            baseY: 800, // Visual rendering is always from bottom (Y=800) due to CSS rotation
+            baseY_P1: 800, baseY_P2: 200, // Physical locations
             baseMinX: 250, baseMaxX: 750, maxPower: 350, powerMultiplier: 45
         };
 
@@ -493,6 +497,8 @@
                 this.resetStriker();
                 UIManager.updateHUD();
                 UIManager.toggleSlider(true);
+                
+                document.getElementById('carromCanvas').style.transform = "rotate(0deg)";
             },
 
             getValidSpawnPos(radius, preferCenter = false) {
@@ -521,7 +527,6 @@
 
             resetStriker() {
                 this.striker.active = true; this.striker.vx = 0; this.striker.vy = 0;
-                // Base Y is always 800 because the board rotates visually and logically for Player 2
                 this.striker.y = Config.baseY; this.striker.x = 500;
                 document.getElementById('controlKnob').style.left = `calc(50% - 19px)`;
                 this.checkStrikerOverlap();
@@ -530,9 +535,6 @@
 
             checkStrikerOverlap() {
                 this.strikerInvalidPos = false;
-                
-                // We need to check physical board coordinates.
-                // If P2, the visual striker position corresponds to the physical TOP (Y=200).
                 let physicalX = this.striker.x;
                 let physicalY = this.turn === 1 ? Config.baseY_P1 : Config.baseY_P2;
 
@@ -611,7 +613,6 @@
                     if (pocketedOwn && !pocketedQueenThisShot) UIManager.showToast("Extra Turn!", 1000);
                 }
                 
-                // Apply rotation physically so physics match visual rotation
                 let cvs = document.getElementById('carromCanvas');
                 if(this.turn === 2) { cvs.style.transform = "rotate(180deg)"; } 
                 else { cvs.style.transform = "rotate(0deg)"; }
@@ -644,8 +645,10 @@
                     let pos = (clientX - rect.left) / rect.width;
                     pos = Math.max(0.05, Math.min(0.95, pos));
                     
+                    let boardPos = GameState.turn === 2 ? (1 - pos) : pos;
+                    
                     document.getElementById('controlKnob').style.left = `calc(${pos * 100}% - 19px)`;
-                    GameState.striker.x = Config.baseMinX + pos * (Config.baseMaxX - Config.baseMinX);
+                    GameState.striker.x = Config.baseMinX + boardPos * (Config.baseMaxX - Config.baseMinX);
                     GameState.checkStrikerOverlap();
                 };
 
@@ -696,21 +699,12 @@
                         GameState.state = 'SHOOTING'; GameState.firstShotTaken = true;
                         let scale = Math.min(power, Config.maxPower) / Config.maxPower;
                         
-                        // Because visual representation is at Y=800 for both turns (via CSS rotation),
-                        // but logical is Y=800(P1) or Y=200(P2), we translate striker Y correctly before launching
                         GameState.striker.y = GameState.turn === 1 ? Config.baseY_P1 : Config.baseY_P2;
-                        
-                        // Fix velocity direction for P2 logic
                         let vxm = (-dx / power) * scale * Config.powerMultiplier;
                         let vym = (-dy / power) * scale * Config.powerMultiplier;
                         
-                        if (GameState.turn === 2) {
-                            GameState.striker.vx = -vxm;
-                            GameState.striker.vy = -vym;
-                        } else {
-                            GameState.striker.vx = vxm;
-                            GameState.striker.vy = vym;
-                        }
+                        if (GameState.turn === 2) { GameState.striker.vx = -vxm; GameState.striker.vy = -vym; } 
+                        else { GameState.striker.vx = vxm; GameState.striker.vy = vym; }
 
                         AudioSystem.play('shoot');
                         if (scale > 0.8) GameState.cameraShake = 6 * scale;
@@ -801,7 +795,7 @@
             }
         };
 
-        // --- 8. RENDERER (Uses AssetLibrary & Procedural Geometry) ---
+        // --- 8. RENDERER (Uses AssetLibrary & 2D Flat Graphics) ---
         const Renderer = {
             cvs: document.getElementById('carromCanvas'),
             ctx: document.getElementById('carromCanvas').getContext('2d', { alpha: false }),
@@ -827,10 +821,8 @@
                 ctx.beginPath(); ctx.moveTo(Config.boardSize, Config.boardSize-cw); ctx.arcTo(Config.boardSize,Config.boardSize,Config.boardSize-cw,Config.boardSize,cr); ctx.lineTo(Config.boardSize-cw,Config.boardSize); ctx.lineTo(Config.boardSize-cw, Config.boardSize-cw); ctx.closePath(); ctx.fill(); 
                 ctx.beginPath(); ctx.moveTo(cw, Config.boardSize); ctx.arcTo(0,Config.boardSize,0,Config.boardSize-cw,cr); ctx.lineTo(0,Config.boardSize-cw); ctx.lineTo(cw, Config.boardSize-cw); ctx.closePath(); ctx.fill(); 
 
-                // 3. Inner Surface
-                let bgGrad = ctx.createRadialGradient(500, 500, 100, 500, 500, 800);
-                bgGrad.addColorStop(0, boardSkin.surface[0]); bgGrad.addColorStop(1, boardSkin.surface[1]); 
-                ctx.fillStyle = bgGrad;
+                // 3. Inner Surface (Flat Colors to ensure completely 2D feel)
+                ctx.fillStyle = boardSkin.surface;
                 ctx.beginPath(); ctx.roundRect(Config.innerBoardStart, Config.innerBoardStart, Config.innerBoardSize, Config.innerBoardSize, 20); ctx.fill();
 
                 // 4. Markings
@@ -840,22 +832,29 @@
                 ctx.lineWidth = 4;
                 const drawArrow = (x1,y1, x2,y2) => {
                     ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-                    ctx.beginPath(); ctx.arc(x1, y1, 10, 0, Math.PI*2); ctx.fillStyle=boardSkin.lines; ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(x1, y1, 10, 0, Math.PI*2); ctx.fillStyle = boardSkin.lines; ctx.fill(); ctx.stroke();
                 };
                 drawArrow(250, 250, 160, 160); drawArrow(750, 250, 840, 160);
                 drawArrow(250, 750, 160, 840); drawArrow(750, 750, 840, 840);
 
+                // Center Mandala
+                ctx.strokeStyle = boardSkin.lines; ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.arc(500, 500, 160, 0, Math.PI*2); ctx.stroke();
-                ctx.beginPath(); ctx.arc(500, 500, 40, 0, Math.PI*2); ctx.fillStyle=boardSkin.lines; ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.arc(500, 500, 145, 0, Math.PI*2); ctx.stroke();
+                for(let i=0; i<8; i++) {
+                    ctx.beginPath(); ctx.arc(500 + Math.cos(i*Math.PI/4)*80, 500 + Math.sin(i*Math.PI/4)*80, 80, 0, Math.PI*2); ctx.stroke();
+                }
+                ctx.beginPath(); ctx.arc(500, 500, 40, 0, Math.PI*2); ctx.fillStyle = boardSkin.lines; ctx.fill();
                 
                 [ Config.baseY_P1, Config.baseY_P2 ].forEach((val) => {
-                    ctx.beginPath(); ctx.moveTo(Config.baseMinX, val-18); ctx.lineTo(Config.baseMaxX, val-18); ctx.moveTo(Config.baseMinX, val+18); ctx.lineTo(Config.baseMaxX, val+18); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(Config.baseMinX, val-18); ctx.lineTo(Config.baseMaxX, val-18); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(Config.baseMinX, val+18); ctx.lineTo(Config.baseMaxX, val+18); ctx.stroke();
                 });
 
                 const drawBadge = (x, y) => {
-                    ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI*2); ctx.fillStyle = '#dc2626'; ctx.fill();
-                    ctx.strokeStyle = '#4a2511'; ctx.lineWidth = 2; ctx.stroke();
-                    ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
+                    ctx.beginPath(); ctx.arc(x, y, 22, 0, Math.PI*2); ctx.fillStyle = boardSkin.accent; ctx.fill();
+                    ctx.strokeStyle = boardSkin.lines; ctx.lineWidth = 2; ctx.stroke();
+                    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
                 };
                 drawBadge(Config.baseMinX, Config.baseY_P1); drawBadge(Config.baseMaxX, Config.baseY_P1);
                 drawBadge(Config.baseMinX, Config.baseY_P2); drawBadge(Config.baseMaxX, Config.baseY_P2);
@@ -866,51 +865,56 @@
                     ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius + 3, 0, Math.PI*2); ctx.fillStyle = pocketSkin.rim; ctx.fill();
                     ctx.beginPath(); ctx.arc(p[0], p[1], Config.pocketRadius, 0, Math.PI*2); ctx.fillStyle = pocketSkin.hole; ctx.fill();
                     ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 4; ctx.stroke();
-                    if(pocketSkin.glow) { ctx.shadowColor = pocketSkin.rim; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0; }
                 });
 
-                // 6. Draw 2D Coins & Striker
+                // 6. Draw 2D Flat Coins & Striker
                 const drawPiece = (c, isStriker = false) => {
-                    // Physical XY mapping since Canvas rotates physically based on CSS transform now
                     let px = c.x, py = c.y;
-
-                    // Striker positioning overrides before physics
                     if (isStriker && GameState.state === 'READY') { py = Config.baseY_P1; }
 
+                    // Drop Shadow
                     ctx.beginPath(); ctx.arc(px + 3, py + 3, c.r, 0, Math.PI * 2);
                     ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill(); 
 
-                    ctx.beginPath(); ctx.arc(px, py, c.r, 0, Math.PI * 2);
-                    
                     if (isStriker) {
-                        let grad = ctx.createRadialGradient(px - c.r*0.3, py - c.r*0.3, c.r*0.1, px, py, c.r);
-                        grad.addColorStop(0, strikerSkin.bg[0]); grad.addColorStop(1, strikerSkin.bg[1]);
-                        ctx.fillStyle = grad; ctx.fill();
-                        ctx.strokeStyle = strikerSkin.rim; ctx.lineWidth = 3; ctx.stroke();
+                        // Striker Base
+                        ctx.beginPath(); ctx.arc(px, py, c.r, 0, Math.PI * 2);
+                        ctx.fillStyle = strikerSkin.bg; ctx.fill();
+                        ctx.strokeStyle = strikerSkin.rim; ctx.lineWidth = 4; ctx.stroke();
                         
-                        ctx.beginPath(); ctx.arc(px, py, c.r * 0.45, 0, Math.PI * 2);
+                        // Striker Design
+                        ctx.beginPath(); ctx.arc(px, py, c.r * 0.7, 0, Math.PI * 2);
+                        ctx.strokeStyle = strikerSkin.accent; ctx.lineWidth = 2; ctx.stroke();
+
+                        ctx.beginPath(); ctx.arc(px, py, c.r * 0.4, 0, Math.PI * 2);
                         ctx.fillStyle = strikerSkin.center; ctx.fill();
 
+                        ctx.beginPath(); ctx.arc(px, py, c.r * 0.15, 0, Math.PI * 2);
+                        ctx.fillStyle = strikerSkin.rim; ctx.fill();
+
+                        // Invalid Red Glow
                         if (GameState.state === 'READY' && GameState.strikerInvalidPos) {
                             ctx.beginPath(); ctx.arc(px, py, c.r + 4, 0, Math.PI * 2);
                             ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)'; ctx.lineWidth = 4; ctx.stroke();
-                            if(ctx.setLineDash) { ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]); }
                         }
-                        if(strikerSkin.glow) { ctx.shadowColor = strikerSkin.glow; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0; }
                     } else {
                         let colors = c.type === 'queen' ? coinSkin.colors.queen : (c.type === 'white' ? coinSkin.colors.white : coinSkin.colors.black);
-                        let grad = ctx.createRadialGradient(px - c.r*0.3, py - c.r*0.3, c.r*0.1, px, py, c.r);
-                        grad.addColorStop(0, colors[0]); grad.addColorStop(1, colors[1]);
-                        ctx.fillStyle = grad; ctx.fill();
-                        ctx.strokeStyle = coinSkin.rim || colors[2] || '#000'; ctx.lineWidth = 2; ctx.stroke();
                         
+                        // Base flat color
+                        ctx.beginPath(); ctx.arc(px, py, c.r, 0, Math.PI * 2);
+                        ctx.fillStyle = colors.base; ctx.fill();
+                        ctx.strokeStyle = colors.rim; ctx.lineWidth = 3; ctx.stroke();
+                        
+                        // Inner engraving
                         ctx.beginPath(); ctx.arc(px, py, c.r * 0.65, 0, Math.PI * 2);
-                        ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1.5; ctx.stroke();
-                        
-                        if(coinSkin.glow) { ctx.shadowColor = coinSkin.glow; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0; }
+                        ctx.strokeStyle = colors.inner; ctx.lineWidth = 2; ctx.stroke();
+
+                        ctx.beginPath(); ctx.arc(px, py, c.r * 0.25, 0, Math.PI * 2);
+                        ctx.fillStyle = colors.inner; ctx.fill();
                     }
                 };
 
+                // Render Coins and then Striker on top
                 GameState.coins.forEach(c => { if (c.active) drawPiece(c); });
                 if (GameState.striker && GameState.striker.active) drawPiece(GameState.striker, true);
 
@@ -924,7 +928,6 @@
                     let dy = InputManager.currY - InputManager.startY;
                     let power = Math.hypot(dx, dy);
 
-                    // Re-orient aim tracking to the forced bottom view
                     let sx = GameState.striker.x; let sy = Config.baseY_P1;
 
                     ctx.strokeStyle = power > 150 ? 'rgba(239, 68, 68, 0.8)' : 'rgba(250, 204, 21, 0.8)';
@@ -993,3 +996,4 @@
     </script>
 </body>
 </html>
+
