@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Carrom Pool Pro - Local Multiplayer</title>
+    <title>Carrom Pool Pro - Local</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100vw; height: 100vh; background: radial-gradient(circle at top, #4a0e4e 0%, #1e0524 100%); color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 15px 0; }
 
-        /* UI Overlays */
         .overlay { position: fixed; inset: 0; background: rgba(10, 2, 15, 0.95); backdrop-filter: blur(8px); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.3s; }
         .overlay.hidden { opacity: 0; pointer-events: none; }
         
@@ -19,7 +18,6 @@
         .btn-glass:active { transform: scale(0.95); }
         .btn-glass.secondary { background: linear-gradient(to bottom, #60a5fa 0%, #1d4ed8 100%); color: #fff; border-color: #bfdbfe; }
 
-        /* Top HUD */
         .hud-top { width: 100%; max-width: 480px; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.5s; }
         .hud-top.visible { opacity: 1; }
         
@@ -44,12 +42,10 @@
         .pot { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: #fff; }
         .pot-coins { width: 40px; height: auto; margin-bottom: 5px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
 
-        /* Canvas Container */
         .board-container { position: relative; width: 95vw; height: 95vw; max-width: 450px; max-height: 450px; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.9); transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); margin-top: auto; margin-bottom: auto; }
         .board-container.visible { opacity: 1; transform: scale(1); }
         canvas { width: 100%; height: 100%; border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); }
 
-        /* Bottom Controls */
         .hud-bottom { width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 0 15px; z-index: 10; opacity: 0; transition: opacity 0.5s; }
         .hud-bottom.visible { opacity: 1; }
         
@@ -63,29 +59,25 @@
         .btn-icon { width: 50px; height: 50px; background: radial-gradient(circle at 30% 30%, #fef08a 0%, #ca8a04 100%); border: 2px solid #fff; border-radius: 50%; color: #451a03; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 0 15px rgba(250, 204, 21, 0.4), 0 8px 15px rgba(0,0,0,0.5); transition: transform 0.1s; }
         .btn-icon:active { transform: scale(0.9); }
 
-        /* Toast Notifications */
         #toast { position: fixed; top: 120px; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(55, 11, 59, 0.95); border: 2px solid #facc15; color: #fef08a; padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 900; z-index: 1000; opacity: 0; transition: all 0.3s; box-shadow: 0 15px 30px rgba(0,0,0,0.7); pointer-events: none; }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-    <!-- Main Menu -->
     <div class="overlay" id="mainMenu">
         <div class="menu-card">
             <div class="menu-title">Carrom Pool</div>
-            <button class="btn-glass" onclick="startGame()">Play Local 2-Player</button>
-            <button class="btn-glass secondary" onclick="alert('Local Practice Mode. Master your trick shots!') || startGame()">Practice Mode</button>
-            <button class="btn-glass secondary" onclick="alert('Drag the slider below the board to place your striker.\nPull back on the striker on the board to aim and shoot.\nFirst to pocket all 9 coins wins!\nCover the Queen to win.')">How to Play</button>
+            <button class="btn-glass" onclick="startGame()">Play Local Match</button>
+            <button class="btn-glass secondary" onclick="alert('Drag the slider below the board to place your striker.\nPull back on the striker to aim and shoot.\nFirst to pocket all 9 coins wins!\nCover the Queen to win.')">How to Play</button>
         </div>
     </div>
 
-    <!-- Game Over Menu -->
     <div class="overlay hidden" id="gameOverMenu">
         <div class="menu-card">
             <i class="fa-solid fa-crown" style="font-size: 60px; color: #facc15; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(250,204,21,0.5));"></i>
             <h2 id="winTitle" style="font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 10px;">Player 1 Wins!</h2>
-            <p id="winDesc" style="font-size: 13px; color: #e9d5ff; margin-bottom: 25px;">All coins successfully pocketed.</p>
+            <p id="winDesc" style="font-size: 13px; color: #e9d5ff; margin-bottom: 25px;">+50 XP Earned!</p>
             <button class="btn-glass" onclick="startGame()">Play Again</button>
             <button class="btn-glass secondary" onclick="quitMatch()">Main Menu</button>
         </div>
@@ -93,22 +85,20 @@
 
     <div id="toast">Message</div>
 
-    <!-- Top HUD -->
     <div class="hud-top" id="hudTop">
         <div class="player-hud left active-turn" id="p1Card">
             <div class="avatar-box">
-                <div class="lvl-star">26</div>
+                <div class="lvl-star" id="p1Lvl">1</div>
                 <div class="inner"><i class="fa-solid fa-user"></i></div>
             </div>
             <div class="name-score">
-                <span class="name">Player 1</span>
+                <span class="name" id="p1Name">Player 1</span>
                 <span class="score" id="p1Count">0 <div class="coin-icon white"></div></span>
             </div>
         </div>
         
         <div class="pot">
             <svg class="pot-coins" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <!-- Stack of 3 coins via SVG -->
                 <ellipse cx="50" cy="70" rx="35" ry="15" fill="#ca8a04"/>
                 <ellipse cx="50" cy="65" rx="35" ry="15" fill="#facc15"/>
                 <ellipse cx="50" cy="50" rx="35" ry="15" fill="#ca8a04"/>
@@ -117,40 +107,47 @@
                 <ellipse cx="50" cy="25" rx="35" ry="15" fill="#fef08a"/>
                 <ellipse cx="50" cy="25" rx="25" ry="10" fill="none" stroke="#ca8a04" stroke-width="2"/>
             </svg>
-            <span id="scorePot">1000</span>
+            <span>XP Boost</span>
         </div>
 
         <div class="player-hud right" id="p2Card">
             <div class="name-score">
-                <span class="name">Player 2</span>
+                <span class="name">Guest 2</span>
                 <span class="score"><div class="coin-icon black"></div> <span id="p2Count">0</span></span>
             </div>
             <div class="avatar-box">
-                <div class="lvl-star">23</div>
+                <div class="lvl-star">1</div>
                 <div class="inner"><i class="fa-solid fa-user-ninja"></i></div>
             </div>
         </div>
     </div>
 
-    <!-- Canvas -->
     <div class="board-container" id="boardContainer">
         <canvas id="carromCanvas" width="1000" height="1000"></canvas>
     </div>
 
-    <!-- Bottom HUD -->
     <div class="hud-bottom" id="hudBottom">
         <div class="slider-container" id="sliderBar">
             <div class="striker-track"></div>
             <div class="control-knob" id="controlKnob"></div>
         </div>
         <div class="action-buttons">
-            <button class="btn-icon" onclick="resetBoard()" title="Restart"><i class="fa-solid fa-comment-dots"></i></button>
-            <button class="btn-icon" onclick="toggleSound()" id="soundBtn"><i class="fa-solid fa-bars"></i></button>
+            <button class="btn-icon" onclick="resetBoard()" title="Restart"><i class="fa-solid fa-rotate-right"></i></button>
+            <button class="btn-icon" onclick="toggleSound()" id="soundBtn"><i class="fa-solid fa-volume-high"></i></button>
+            <button class="btn-icon" onclick="quitMatch()" style="background: radial-gradient(circle at 30% 30%, #ef4444, #991b1b); border-color: #fca5a5; color: #fff;"><i class="fa-solid fa-power-off"></i></button>
         </div>
     </div>
 
     <script>
-        // --- Web Audio API (Procedural Synthesis) ---
+        let myProfile = { name: 'Player 1', level: 1 };
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'AUTH' && e.data.profile) {
+                myProfile = e.data.profile;
+                document.getElementById('p1Name').innerText = myProfile.name;
+                document.getElementById('p1Lvl').innerText = myProfile.level || 1;
+            }
+        });
+
         let soundEnabled = true;
         let audioCtx = null;
 
@@ -193,7 +190,7 @@
 
         function toggleSound() {
             soundEnabled = !soundEnabled;
-            // Provide visual feedback for sound toggle (using the bars icon area as requested by layout)
+            document.getElementById('soundBtn').innerHTML = soundEnabled ? '<i class="fa-solid fa-volume-high"></i>' : '<i class="fa-solid fa-volume-xmark"></i>';
             showToast(soundEnabled ? "Sound Enabled" : "Sound Muted");
         }
 
@@ -204,12 +201,10 @@
             setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        // --- Core Physics & Rendering Setup ---
         const cvs = document.getElementById('carromCanvas');
         const ctx = cvs.getContext('2d');
         const BOARD_SIZE = 1000; 
         
-        // Settings matching the image proportions
         const FRICTION = 0.985;
         const WALL_RESTITUTION = 0.75;
         const COIN_RADIUS = 26;
@@ -234,8 +229,8 @@
         let striker = { id: 'striker', c: '#fffbeb', x: 500, y: BASELINE_Y_P1, r: STRIKER_RADIUS, vx: 0, vy: 0, mass: 1.5, active: true };
         
         let isPlaying = false;
-        let turn = 1; // 1: White, 2: Black
-        let p1Score = 0; // Scores in image start at 0 and go UP to 9
+        let turn = 1; 
+        let p1Score = 0; 
         let p2Score = 0;
         let queenPocketedBy = null;
         let queenCovering = false;
@@ -253,6 +248,7 @@
             
             resetBoard();
             isPlaying = true;
+            window.parent.postMessage({ sender: 'syncbeat', action: 'GAME_STARTED', tab: 4 }, '*');
         }
 
         function quitMatch() {
@@ -261,6 +257,7 @@
             document.getElementById('hudTop').classList.remove('visible');
             document.getElementById('hudBottom').classList.remove('visible');
             document.getElementById('boardContainer').classList.remove('visible');
+            window.parent.postMessage({ sender: 'syncbeat', action: 'GAME_ENDED' }, '*');
         }
 
         function resetBoard() {
@@ -271,15 +268,11 @@
 
         function initPieces() {
             coins = [{ id: 'queen', c: '#dc2626', x: 500, y: 500, r: COIN_RADIUS, vx: 0, vy: 0, mass: 1, active: true, type: 'queen' }];
-            
-            // Inner Hex (6)
             for (let i = 0; i < 6; i++) {
                 let angle = i * (Math.PI / 3);
                 let type = i % 2 === 0 ? 'white' : 'black';
                 coins.push({ id: `inner_${i}`, type: type, x: 500 + Math.cos(angle)*54, y: 500 + Math.sin(angle)*54, r: COIN_RADIUS, vx: 0, vy: 0, mass: 1, active: true });
             }
-
-            // Outer Hex (12)
             for (let i = 0; i < 12; i++) {
                 let angle = i * (Math.PI / 6) + (Math.PI / 12);
                 let type = i % 2 === 0 ? 'black' : 'white';
@@ -298,7 +291,6 @@
         }
 
         function updateHUD() {
-            // HUD shows pocketed count: 0 up to 9
             document.getElementById('p1Count').innerHTML = `${p1Score} <div class="coin-icon white"></div>`;
             document.getElementById('p2Count').innerHTML = `<div class="coin-icon black"></div> ${p2Score}`;
             
@@ -314,7 +306,6 @@
             }
         }
 
-        // --- Controls (Slider & Aiming) ---
         const sliderBar = document.getElementById('sliderBar');
         const knob = document.getElementById('controlKnob');
         let isSliding = false;
@@ -386,7 +377,6 @@
             return false;
         }
 
-        // --- Physics Implementation ---
         function resolveCollision(a, b) {
             if (!a.active || !b.active) return;
             let dx = b.x - a.x; let dy = b.y - a.y; let dist = Math.hypot(dx, dy);
@@ -429,7 +419,6 @@
                     e.vx *= FRICTION; e.vy *= FRICTION;
                     e.x += e.vx; e.y += e.vy;
                     
-                    // Inner Board Wall bounce
                     let min_bound = INNER_BOARD_START + e.r;
                     let max_bound = INNER_BOARD_START + INNER_BOARD_SIZE - e.r;
                     if (e.x < min_bound || e.x > max_bound) { e.vx *= -WALL_RESTITUTION; e.x = Math.max(min_bound, Math.min(max_bound, e.x)); playSound('hit', Math.abs(e.vx)); }
@@ -437,14 +426,12 @@
                 }
             });
 
-            // Collisions
             for (let i = 0; i < entities.length; i++) {
                 for (let j = i + 1; j < entities.length; j++) {
                     resolveCollision(entities[i], entities[j]);
                 }
             }
 
-            // Pocketing
             entities.forEach(e => {
                 if (!e.active) return;
                 POCKETS.forEach(p => {
@@ -457,17 +444,15 @@
                 });
             });
 
-            // Striker Foul Check
             POCKETS.forEach(p => {
                 if (striker.active && Math.hypot(striker.x - p[0], striker.y - p[1]) < POCKET_RADIUS + 5) {
                     striker.active = false; striker.vx = 0; striker.vy = 0;
                     showToast("Foul! Striker Pocketed.");
-                    spawnParticles(p[0], p[1], striker.c);
+                    createParticles(p[0], p[1], striker.c);
                     playSound('pocket');
                 }
             });
 
-            // Particles update
             for (let i = particles.length - 1; i >= 0; i--) {
                 let p = particles[i];
                 p.x += p.vx; p.y += p.vy; p.life -= 0.03;
@@ -480,7 +465,6 @@
             if (shotTaken && !isMoving()) resolveTurn();
         }
 
-        // --- Game Rules Engine ---
         function resolveTurn() {
             shotTaken = false;
             let keepTurn = false;
@@ -489,9 +473,7 @@
             let oppType = turn === 1 ? 'black' : 'white';
 
             if (foul) {
-                // Striker foul: return pocketed coins to center
                 pocketedThisShot.forEach(pc => { pc.active = true; pc.x = 500; pc.y = 500; });
-                // Penalty: if player has scored > 0, return one coin
                 let score = turn === 1 ? p1Score : p2Score;
                 if (score > 0) {
                     let penaltyCoin = coins.find(c => !c.active && c.type === myType);
@@ -515,13 +497,11 @@
                     }
                 });
 
-                // Queen Cover Logic
                 if (queenCovering && queenPocketedBy === turn) {
                     if (hitOwn) {
-                        queenCovering = false; // Successfully covered
+                        queenCovering = false; 
                         showToast("Queen Covered!");
                     } else if (pocketedThisShot.length > 0 && !hitOwn && !pocketedThisShot.find(c=>c.type==='queen')) {
-                        // Failed to cover
                         let q = coins.find(c => c.type === 'queen');
                         q.active = true; q.x = 500; q.y = 500;
                         queenCovering = false; queenPocketedBy = null;
@@ -530,13 +510,15 @@
                 }
             }
 
-            // Win Condition
             if (p1Score >= 9 && (!queenCovering || queenPocketedBy === 1)) {
-                document.getElementById('winTitle').innerText = "Player 1 Wins!";
+                document.getElementById('winTitle').innerText = `${myProfile.name || 'Player 1'} Wins!`;
+                document.getElementById('winDesc').innerText = "+50 XP Earned!";
                 document.getElementById('gameOverMenu').classList.remove('hidden');
+                window.parent.postMessage({ sender: 'syncbeat', action: 'MATCH_WON', player: 1 }, '*');
                 isPlaying = false; return;
             } else if (p2Score >= 9 && (!queenCovering || queenPocketedBy === 2)) {
                 document.getElementById('winTitle').innerText = "Player 2 Wins!";
+                document.getElementById('winDesc').innerText = "Better luck next time.";
                 document.getElementById('gameOverMenu').classList.remove('hidden');
                 isPlaying = false; return;
             }
@@ -547,42 +529,34 @@
             updateHUD();
         }
 
-        // --- Canvas Rendering (Matching the Image) ---
         function drawBoard() {
             ctx.save();
             if (cameraShake > 0) ctx.translate((Math.random()-0.5)*cameraShake, (Math.random()-0.5)*cameraShake);
             ctx.clearRect(0, 0, BOARD_SIZE, BOARD_SIZE);
 
-            // Outer Dark Wood Frame
             ctx.fillStyle = '#6b3e18';
             ctx.beginPath(); ctx.roundRect(0, 0, BOARD_SIZE, BOARD_SIZE, 40); ctx.fill();
             
-            // Gold Corner Brackets Overlay
             ctx.fillStyle = '#facc15';
             let cr = 40; let cw = 75;
-            ctx.beginPath(); ctx.moveTo(0, cw); ctx.arcTo(0,0,cw,0,cr); ctx.lineTo(cw,0); ctx.lineTo(cw, cw); ctx.closePath(); ctx.fill(); // TL
-            ctx.beginPath(); ctx.moveTo(BOARD_SIZE-cw, 0); ctx.arcTo(BOARD_SIZE,0,BOARD_SIZE,cw,cr); ctx.lineTo(BOARD_SIZE,cw); ctx.lineTo(BOARD_SIZE-cw, cw); ctx.closePath(); ctx.fill(); // TR
-            ctx.beginPath(); ctx.moveTo(BOARD_SIZE, BOARD_SIZE-cw); ctx.arcTo(BOARD_SIZE,BOARD_SIZE,BOARD_SIZE-cw,BOARD_SIZE,cr); ctx.lineTo(BOARD_SIZE-cw,BOARD_SIZE); ctx.lineTo(BOARD_SIZE-cw, BOARD_SIZE-cw); ctx.closePath(); ctx.fill(); // BR
-            ctx.beginPath(); ctx.moveTo(cw, BOARD_SIZE); ctx.arcTo(0,BOARD_SIZE,0,BOARD_SIZE-cw,cr); ctx.lineTo(0,BOARD_SIZE-cw); ctx.lineTo(cw, BOARD_SIZE-cw); ctx.closePath(); ctx.fill(); // BL
+            ctx.beginPath(); ctx.moveTo(0, cw); ctx.arcTo(0,0,cw,0,cr); ctx.lineTo(cw,0); ctx.lineTo(cw, cw); ctx.closePath(); ctx.fill(); 
+            ctx.beginPath(); ctx.moveTo(BOARD_SIZE-cw, 0); ctx.arcTo(BOARD_SIZE,0,BOARD_SIZE,cw,cr); ctx.lineTo(BOARD_SIZE,cw); ctx.lineTo(BOARD_SIZE-cw, cw); ctx.closePath(); ctx.fill(); 
+            ctx.beginPath(); ctx.moveTo(BOARD_SIZE, BOARD_SIZE-cw); ctx.arcTo(BOARD_SIZE,BOARD_SIZE,BOARD_SIZE-cw,BOARD_SIZE,cr); ctx.lineTo(BOARD_SIZE-cw,BOARD_SIZE); ctx.lineTo(BOARD_SIZE-cw, BOARD_SIZE-cw); ctx.closePath(); ctx.fill(); 
+            ctx.beginPath(); ctx.moveTo(cw, BOARD_SIZE); ctx.arcTo(0,BOARD_SIZE,0,BOARD_SIZE-cw,cr); ctx.lineTo(0,BOARD_SIZE-cw); ctx.lineTo(cw, BOARD_SIZE-cw); ctx.closePath(); ctx.fill(); 
 
-            // Inner Light Wood Board
             ctx.fillStyle = '#dcb589';
             ctx.beginPath(); ctx.roundRect(INNER_BOARD_START, INNER_BOARD_START, INNER_BOARD_SIZE, INNER_BOARD_SIZE, 30); ctx.fill();
 
-            // Pockets (Solid Black)
             POCKETS.forEach(p => {
                 ctx.beginPath(); ctx.arc(p[0], p[1], POCKET_RADIUS, 0, Math.PI*2);
                 ctx.fillStyle = '#111'; ctx.fill();
             });
 
-            // Markings (Faint Brown)
             ctx.strokeStyle = 'rgba(139, 69, 19, 0.3)'; 
             
-            // Outer Frame lines
             ctx.lineWidth = 2;
             ctx.strokeRect(INNER_BOARD_START+20, INNER_BOARD_START+20, INNER_BOARD_SIZE-40, INNER_BOARD_SIZE-40);
 
-            // Diagonal Arrows to Pockets
             ctx.lineWidth = 4;
             const drawArrow = (x1,y1, x2,y2) => {
                 ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
@@ -591,10 +565,8 @@
             drawArrow(250, 250, 150, 150); drawArrow(750, 250, 850, 150);
             drawArrow(250, 750, 150, 850); drawArrow(750, 750, 850, 850);
 
-            // Center Mandala
             ctx.beginPath(); ctx.arc(500, 500, 160, 0, Math.PI*2); ctx.stroke();
             ctx.beginPath(); ctx.arc(500, 500, 150, 0, Math.PI*2); ctx.stroke();
-            // Flower Petals (Simplified intersecting circles)
             for(let i=0; i<8; i++) {
                 ctx.beginPath();
                 ctx.arc(500 + Math.cos(i*Math.PI/4)*75, 500 + Math.sin(i*Math.PI/4)*75, 75, 0, Math.PI*2);
@@ -602,7 +574,6 @@
             }
             ctx.beginPath(); ctx.arc(500, 500, 40, 0, Math.PI*2); ctx.fillStyle='rgba(139, 69, 19, 0.15)'; ctx.fill(); ctx.stroke();
             
-            // Player Baselines
             [ BASELINE_Y_P1, BASELINE_Y_P2, 500, 500 ].forEach((val, idx) => {
                 ctx.beginPath();
                 if(idx < 2) { ctx.moveTo(BASELINE_MIN_X, val-15); ctx.lineTo(BASELINE_MAX_X, val-15); ctx.moveTo(BASELINE_MIN_X, val+15); ctx.lineTo(BASELINE_MAX_X, val+15); }
@@ -610,20 +581,16 @@
                 ctx.stroke();
             });
 
-            // Red Star Base Markers
             const drawStarMarker = (x, y) => {
                 ctx.beginPath(); ctx.arc(x, y, 22, 0, Math.PI*2); ctx.fillStyle = '#dc2626'; ctx.fill();
                 ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.stroke();
-                // Simple white star abstract (circle)
                 ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
             };
             drawStarMarker(200, 200); drawStarMarker(800, 200);
             drawStarMarker(200, 800); drawStarMarker(800, 800);
             drawStarMarker(500, 200); drawStarMarker(500, 800); drawStarMarker(200, 500); drawStarMarker(800, 500);
 
-            // Draw Pieces Function
             const drawPiece = (c, isStriker = false) => {
-                // Shadow
                 ctx.beginPath(); ctx.arc(c.x + 5, c.y + 5, c.r, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill(); 
 
@@ -634,7 +601,6 @@
                     grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.5, '#d1d5db'); grad.addColorStop(1, '#94a3b8');
                     ctx.fillStyle = grad; ctx.fill();
                     ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4; ctx.stroke();
-                    // Striker inner design (black rings)
                     ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.6, 0, Math.PI * 2); ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.stroke();
                     ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.3, 0, Math.PI * 2); ctx.fillStyle = '#0f172a'; ctx.fill();
                 } else {
@@ -645,7 +611,6 @@
                     ctx.fillStyle = grad; ctx.fill();
                     ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 2; ctx.stroke();
                     
-                    // Coin concentric engraving line
                     ctx.beginPath(); ctx.arc(c.x, c.y, c.r * 0.65, 0, Math.PI * 2);
                     ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1.5; ctx.stroke();
                 }
@@ -654,13 +619,11 @@
             coins.forEach(c => { if (c.active) drawPiece(c); });
             if (striker.active) drawPiece(striker, true);
 
-            // Particles
             particles.forEach(p => {
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.life * 8, 0, Math.PI * 2);
                 ctx.fillStyle = p.c; ctx.globalAlpha = p.life; ctx.fill(); ctx.globalAlpha = 1;
             });
 
-            // Aim Line & Dynamic Power Rings
             if (isDragging && !isMoving()) {
                 let dx = dragCurrentX - startX; let dy = dragCurrentY - startY;
                 let power = Math.hypot(dx, dy);
@@ -683,7 +646,6 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Init
         drawBoard();
         gameLoop();
     </script>
