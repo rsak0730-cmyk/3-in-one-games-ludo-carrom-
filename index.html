@@ -126,7 +126,7 @@
         function switchTab(index, color) {
             if (activeRoomTab !== null && activeRoomTab !== index) {
                 const toast = document.getElementById('toast');
-                document.getElementById('toastMsg').textContent = `Active Match [${activeRoomCode}]. Quit first!`;
+                document.getElementById('toastMsg').textContent = `Active Match in progress. Quit first!`;
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 3000);
                 return;
@@ -144,4 +144,3 @@
     </script>
 </body>
 </html>
-
